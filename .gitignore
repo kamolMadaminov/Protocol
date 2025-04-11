@@ -1,0 +1,52 @@
+# Xcode
+#
+# User-specific files
+*.xcuserstate
+*.xcuserdatad
+
+# Build results
+build/
+DerivedData/
+*.xcarchive
+*.app
+*.ipa
+
+# Swift Package Manager
+#
+# Dependencies
+/.build/
+Package.pins
+Package.resolved
+
+# CocoaPods
+#
+# Pods folder
+Pods/
+
+# Carthage
+#
+# Carthage/Build folder
+Carthage/Build/
+
+# Other files
+#
+# User-specific Xcode settings
+*.xcscheme
+*.xcworkspace
+*.xcassets
+
+# Archive files
+*.tar.gz
+*.dmg
+
+# IDE workspace settings
+.idea/
+.vscode/
+
+# Temporary files
+*.swp
+*.swo
+
+# Other specific files/folders
+*.log
+*.sqlite
