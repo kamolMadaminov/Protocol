@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct ProtocolApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TodayView()
         }
+        .modelContainer(for: DailyLog.self)
     }
 }
