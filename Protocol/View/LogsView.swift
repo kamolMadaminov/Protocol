@@ -9,16 +9,13 @@ import SwiftUI
 import SwiftData
 
 struct LogsView: View {
-    // Query fetching all DailyLog entries, sorted by date descending
     @Query(sort: [SortDescriptor<DailyLog>(\.date, order: .reverse)]) private var logs: [DailyLog]
 
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
-        // Using NavigationStack for potential future navigation to detail views
         NavigationStack {
             List {
-                // Check if logs are empty
                 if logs.isEmpty {
                     ContentUnavailableView(
                         "No Logs Yet",
@@ -26,22 +23,20 @@ struct LogsView: View {
                         description: Text("Start logging your daily protocols, and they will appear here.")
                     )
                 } else {
-                    // Iterate over the fetched and sorted logs
                     ForEach(logs) { log in
                         VStack(alignment: .leading) {
                             HStack {
-                                Text(formattedDate(log.date)) // Display formatted date
+                                Text(formattedDate(log.date))
                                     .font(.headline)
                                 Spacer()
-                                Text(log.mood) // Display mood emoji
+                                Text(log.mood)
                                     .font(.title2)
                             }
-                            // Optionally display a snippet of the note or reflection
                             if !log.note.isEmpty {
                                 Text("Note: \(log.note)")
                                     .font(.caption)
                                     .foregroundColor(.gray)
-                                    .lineLimit(1) // Limit to one line
+                                    .lineLimit(1)
                             } else if !log.reflection.isEmpty {
                                  Text("Reflection: \(log.reflection)")
                                      .font(.caption)
@@ -49,20 +44,11 @@ struct LogsView: View {
                                      .lineLimit(1)
                             }
                         }
-                        // Add padding within the list row if desired
-                        // .padding(.vertical, 4)
                     }
-                    // Optional: Add delete functionality
                     .onDelete(perform: deleteLogs)
                 }
             }
             .navigationTitle("Past Logs")
-            // Optional: Add an EditButton if using onDelete
-            // .toolbar {
-            //     if !logs.isEmpty {
-            //         EditButton()
-            //     }
-            // }
         }
     }
 
@@ -78,7 +64,7 @@ struct LogsView: View {
         if let date = inputFormatter.date(from: dateString) {
             return outputFormatter.string(from: date)
         } else {
-            return dateString // Fallback to original string if formatting fails
+            return dateString
         }
     }
 
@@ -86,14 +72,12 @@ struct LogsView: View {
     private func deleteLogs(offsets: IndexSet) {
         withAnimation {
             offsets.map { logs[$0] }.forEach(modelContext.delete)
-            // Optional: Save context explicitly if needed, often handled automatically
-            // try? modelContext.save()
+             try? modelContext.save()
         }
     }
 }
 
 #Preview {
-    // Provide a sample ModelContainer for the preview
     do {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: DailyLog.self, configurations: config)
