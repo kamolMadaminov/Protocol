@@ -21,6 +21,11 @@ struct ContentView: View {
                     Label("Logs", systemImage: "list.bullet.clipboard")
                 }
                 .tag(1)
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
+                .tag(2)
         }
     }
 }
