@@ -24,24 +24,30 @@ struct LogsView: View {
                     )
                 } else {
                     ForEach(logs) { log in
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(formattedDate(log.date))
-                                    .font(.headline)
-                                Spacer()
-                                Text(log.mood)
-                                    .font(.title2)
-                            }
-                            if !log.note.isEmpty {
-                                Text("Note: \(log.note)")
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
-                                    .lineLimit(1)
-                            } else if !log.reflection.isEmpty {
-                                 Text("Reflection: \(log.reflection)")
-                                     .font(.caption)
-                                     .foregroundColor(.gray)
-                                     .lineLimit(1)
+                        NavigationLink(destination: DetailedLogView(log: log)) {
+                            VStack(alignment: .leading) {
+                                HStack {
+                                    VStack{
+                                        Text(formattedDate(log.date))
+                                            .font(.headline)
+                                        
+                                        if !log.note.isEmpty {
+                                            Text("Note: \(log.note)")
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                                .lineLimit(1)
+                                        } else if !log.reflection.isEmpty {
+                                             Text("Reflection: \(log.reflection)")
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                                .lineLimit(1)
+                                        }
+                                    }
+                                    Spacer()
+                                    Text(log.mood)
+                                        .font(.title2)
+                                }
+
                             }
                         }
                     }
@@ -52,13 +58,13 @@ struct LogsView: View {
         }
     }
 
-    // Helper function to format the date string if needed
+    // Helper function to format the date string for the list view
     private func formattedDate(_ dateString: String) -> String {
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd" // Current format
 
         let outputFormatter = DateFormatter()
-        outputFormatter.dateStyle = .medium // e.g., "Apr 12, 2025"
+        outputFormatter.dateStyle = .medium
         outputFormatter.timeStyle = .none
 
         if let date = inputFormatter.date(from: dateString) {
@@ -72,28 +78,27 @@ struct LogsView: View {
     private func deleteLogs(offsets: IndexSet) {
         withAnimation {
             offsets.map { logs[$0] }.forEach(modelContext.delete)
-             try? modelContext.save()
         }
     }
 }
 
 #Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: DailyLog.self, configurations: config)
+     do {
+         let config = ModelConfiguration(isStoredInMemoryOnly: true)
+         let container = try ModelContainer(for: DailyLog.self, configurations: config)
 
-        // Add sample data for previewing
-        let sampleLog1 = DailyLog(date: "2025-04-11", habits: ["Workout": true], mood: "⚡️", note: "Good session", reflection: "Felt strong")
-        let sampleLog2 = DailyLog(date: "2025-04-10", habits: ["Read": true], mood: "🔥", note: "", reflection: "Finished chapter")
-        let sampleLog3 = DailyLog(date: "2025-04-12", habits: ["Meditate": true], mood: "🌫️", note: "Cloudy day", reflection: "Need more focus")
-        container.mainContext.insert(sampleLog1)
-        container.mainContext.insert(sampleLog2)
-        container.mainContext.insert(sampleLog3)
+         // Add sample data for previewing
+         let sampleLog1 = DailyLog(date: "2025-04-11", habits: ["Workout": true], mood: "⚡️", note: "Good session", reflection: "Felt strong")
+         let sampleLog2 = DailyLog(date: "2025-04-10", habits: ["Read": true], mood: "🔥", note: "", reflection: "Finished chapter")
+         let sampleLog3 = DailyLog(date: "2025-04-12", habits: ["Meditate": true], mood: "🌫️", note: "Cloudy day", reflection: "Need more focus")
+         container.mainContext.insert(sampleLog1)
+         container.mainContext.insert(sampleLog2)
+         container.mainContext.insert(sampleLog3)
 
 
-        return LogsView()
-            .modelContainer(container)
-    } catch {
-        fatalError("Failed to create model container for preview: \(error)")
-    }
+         return LogsView()
+             .modelContainer(container)
+     } catch {
+         fatalError("Failed to create model container for preview: \(error)")
+     }
 }
