@@ -17,71 +17,108 @@ struct TodayView: View {
         Group {
             if let viewModel = viewModel {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        Text("Today’s Protocol")
-                            .font(.title)
-                            .fontWeight(.semibold)
-                         
-                        VStack(alignment: .leading, spacing: 16) {
-                            Text("📆 Habits")
-                                .font(.headline)
+                    VStack(alignment: .leading, spacing: 30) {
 
-                            ForEach(viewModel.sortedHabitNames, id: \.self) { habitName in
-                                Toggle(isOn: Binding(
-                                    get: { viewModel.habits[habitName] ?? false },
-                                    set: { newValue in
-                                        viewModel.habits[habitName] = newValue
-                                        viewModel.saveLog()
+                        Text("Today’s Protocol")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+
+                        // --- Habits Section ---
+                        VStack(alignment: .leading, spacing: 16) {
+                            Label("Habits", systemImage: "list.bullet.clipboard")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+
+                            Divider()
+
+                            if viewModel.sortedHabitNames.isEmpty {
+                                Text("No habits defined yet. Add some in Settings!")
+                                    .foregroundColor(.secondary)
+                                    .padding(.vertical)
+                            } else {
+                                ForEach(viewModel.sortedHabitNames, id: \.self) { habitName in
+                                    Toggle(isOn: Binding(
+                                        get: { viewModel.habits[habitName] ?? false },
+                                        set: { newValue in
+                                            viewModel.habits[habitName] = newValue
+                                            viewModel.saveLog()
+                                        }
+                                    )) {
+                                        Text(habitName)
+                                            .font(.body)
                                     }
-                                )) {
-                                    Text(habitName)
+                                    .tint(.accentColor)
                                 }
                             }
-                             // Adding a message if no habits are defined yet
-                            if viewModel.sortedHabitNames.isEmpty {
-                                Text("No habits defined yet. Add some in Settings!") // Placeholder text
-                                    .foregroundColor(.gray)
-                                    .padding(.vertical)
+                        }
+
+                        // --- State Log Section ---
+                        VStack(alignment: .leading, spacing: 16) {
+                            Label("State Log", systemImage: "brain.head.profile")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+
+                            Divider()
+
+                            // Mood Picker Sub-section
+                            VStack(alignment: .leading) {
+                                Text("Mood")
+                                    .font(.headline)
+                                Picker("Mood", selection: Binding(
+                                    get: { viewModel.mood },
+                                    set: { viewModel.mood = $0; viewModel.saveLog() }
+                                )) {
+                                    Text("🔥").tag("🔥")
+                                    Text("🌫️").tag("🌫️")
+                                    Text("⚡️").tag("⚡️")
+                                }
+                                .pickerStyle(.segmented)
+                            }
+
+                            // Note Sub-section
+                            VStack(alignment: .leading) {
+                                Text("Note")
+                                     .font(.headline) // Sub-header
+                                TextField("Add a brief note (optional)...", text: Binding(
+                                    get: { viewModel.note },
+                                    set: { viewModel.note = $0 }
+                                ), onCommit: {
+                                    viewModel.saveLog()
+                                })
+                                .textFieldStyle(.roundedBorder)
                             }
                         }
 
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("🧠 State Log")
-                                .font(.headline)
+                        // --- Reflection Section ---
+                        VStack(alignment: .leading, spacing: 16) {
+                            Label("Reflection", systemImage: "text.bubble")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
 
-                            Picker("Mood", selection: Binding(
-                                get: { viewModel.mood },
-                                set: { viewModel.mood = $0; viewModel.saveLog() } // Save on change
-                            )) {
-                                Text("🔥").tag("🔥")
-                                Text("🌫️").tag("🌫️")
-                                Text("⚡️").tag("⚡️")
+                            Divider()
+
+                            // Reflection Prompt Sub-section
+                            VStack(alignment: .leading) {
+                                Text("Prompt:")
+                                    .font(.headline)
+                                Text("“Did your actions match your mission?”")
+                                    .font(.callout)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.bottom, 4)
                             }
-                            .pickerStyle(.segmented)
-                            TextField("Note (optional)", text: Binding(
-                                get: { viewModel.note },
-                                set: { viewModel.note = $0 }
-                            ), onCommit: {
-                                viewModel.saveLog()
-                            })
-                            .textFieldStyle(.roundedBorder)
-
-                        }
-
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("📜 Reflection Prompt")
-                                .font(.headline)
-
-                            Text("“Did your actions match your mission?”")
 
                             TextField("Write your reflection...", text: Binding(
                                 get: { viewModel.reflection },
                                 set: { viewModel.reflection = $0 }
-                            ), onCommit: {
-                                 viewModel.saveLog()
-                            })
+                            ), axis: .vertical)
                             .textFieldStyle(.roundedBorder)
-
+                            .lineLimit(5...10)
+                            .onSubmit {
+                                viewModel.saveLog()
+                            }
                         }
 
                     }
@@ -96,7 +133,7 @@ struct TodayView: View {
                 ProgressView("Loading Protocol...")
                     .onAppear {
                         if self.viewModel == nil {
-                           self.viewModel = TodayViewModel(context: modelContext)
+                            self.viewModel = TodayViewModel(context: modelContext)
                         }
                     }
             }
@@ -106,20 +143,20 @@ struct TodayView: View {
 
 
 #Preview {
-     do {
-         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-         let container = try ModelContainer(for: DailyLog.self, Habit.self, configurations: config) // Add Habit
-
-         let habit1 = Habit(name: "Workout")
-         let habit2 = Habit(name: "Read 30 Mins")
-         let habit3 = Habit(name: "Meditate")
-         container.mainContext.insert(habit1)
-         container.mainContext.insert(habit2)
-         container.mainContext.insert(habit3)
-
-         return TodayView()
-             .modelContainer(container)
-     } catch {
-         fatalError("Failed to create model container for preview: \(error)")
-     }
+    do {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: DailyLog.self, Habit.self, configurations: config) // Add Habit
+        
+        let habit1 = Habit(name: "Workout")
+        let habit2 = Habit(name: "Read 30 Mins")
+        let habit3 = Habit(name: "Meditate")
+        container.mainContext.insert(habit1)
+        container.mainContext.insert(habit2)
+        container.mainContext.insert(habit3)
+        
+        return TodayView()
+            .modelContainer(container)
+    } catch {
+        fatalError("Failed to create model container for preview: \(error)")
+    }
 }

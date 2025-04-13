@@ -25,30 +25,32 @@ struct LogsView: View {
                 } else {
                     ForEach(logs) { log in
                         NavigationLink(destination: DetailedLogView(log: log)) {
-                            VStack(alignment: .leading) {
-                                HStack {
-                                    VStack{
-                                        Text(formattedDate(log.date))
-                                            .font(.headline)
-                                        
+                            HStack { // Main container for the row content
+                                // Combine Mood Emoji and Date
+                                Text("\(log.mood) \(formattedDate(log.date))")
+                                    .font(.headline)
+                                    .lineLimit(1)
+
+                                Spacer()
+                                if !log.note.isEmpty || !log.reflection.isEmpty {
+                                    VStack(alignment: .trailing) {
                                         if !log.note.isEmpty {
-                                            Text("Note: \(log.note)")
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                                .lineLimit(1)
-                                        } else if !log.reflection.isEmpty {
-                                             Text("Reflection: \(log.reflection)")
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                                .lineLimit(1)
+                                             Text(log.note)
+                                                 .font(.caption)
+                                                 .foregroundColor(.gray)
+                                                 .lineLimit(1)
+                                                 .truncationMode(.tail)
+                                        } else {
+                                             Text(log.reflection)
+                                                 .font(.caption)
+                                                 .foregroundColor(.gray)
+                                                 .lineLimit(1)
+                                                 .truncationMode(.tail)
                                         }
                                     }
-                                    Spacer()
-                                    Text(log.mood)
-                                        .font(.title2)
                                 }
-
                             }
+                            .padding(.vertical, 4)
                         }
                     }
                     .onDelete(perform: deleteLogs)
@@ -58,15 +60,13 @@ struct LogsView: View {
         }
     }
 
-    // Helper function to format the date string for the list view
+    // Helper function to format the date string
     private func formattedDate(_ dateString: String) -> String {
         let inputFormatter = DateFormatter()
-        inputFormatter.dateFormat = "yyyy-MM-dd" // Current format
-
+        inputFormatter.dateFormat = "yyyy-MM-dd"
         let outputFormatter = DateFormatter()
-        outputFormatter.dateStyle = .medium
+        outputFormatter.dateStyle = .medium // "Apr 13, 2025" - good for list
         outputFormatter.timeStyle = .none
-
         if let date = inputFormatter.date(from: dateString) {
             return outputFormatter.string(from: date)
         } else {

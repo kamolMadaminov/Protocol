@@ -45,12 +45,6 @@ struct AddEditHabitView: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Cancel Button (leading)
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Cancel", role: .cancel) {
-                    dismiss()
-                }
-            }
 
             // Save Button (trailing)
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -65,6 +59,12 @@ struct AddEditHabitView: View {
                 ToolbarItem(placement: .destructiveAction) {
                     Button("Delete", role: .destructive) {
                         showingDeleteConfirm = true // Trigger confirmation
+                    }
+                }
+            } else {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel", role: .cancel) {
+                        dismiss()
                     }
                 }
             }

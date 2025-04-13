@@ -12,65 +12,73 @@ struct DetailedLogView: View {
     let log: DailyLog
 
     var body: some View {
-        ScrollView { 
-            VStack(alignment: .leading, spacing: 20) {
-                // Display Date prominently
-                Text(formattedDate(log.date))
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .padding(.bottom)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 25) {
 
-                // Mood Section
+                // --- Date Title with Mood Emoji ---
                 HStack {
-                    Text("Mood:")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Spacer()
-                    Text(log.mood)
-                        .font(.system(size: 40)) // Larger emoji
+                    // Combine emoji and date
+                    Text("\(log.mood) \(formattedDate(log.date))")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
                 }
+                .padding(.bottom)
 
-                // Habits Section
-                VStack(alignment: .leading) {
-                    Text("Habits:")
+                // --- Habits Section ---
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("Habits", systemImage: "list.bullet.clipboard")
                         .font(.title2)
                         .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
                         .padding(.bottom, 5)
+
+                    Divider()
 
                     if log.habits.isEmpty {
                         Text("No habits logged for this day.")
-                            .foregroundColor(.gray)
+                             .foregroundColor(.secondary)
                     } else {
-                        // Sort habits alphabetically for consistent order
                         ForEach(log.habits.sorted(by: { $0.key < $1.key }), id: \.key) { habitName, completed in
                             HStack {
                                 Text(habitName)
+                                    .font(.body)
                                 Spacer()
                                 Image(systemName: completed ? "checkmark.circle.fill" : "xmark.circle")
                                     .foregroundColor(completed ? .green : .red)
                             }
-                            .padding(.vertical, 2)
+                            .padding(.vertical, 3)
                         }
                     }
                 }
 
-                // Note Section (Only if not empty)
+                // --- Note Section ---
                 if !log.note.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Note:")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label("Note", systemImage: "note.text")
                             .font(.title2)
                             .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                            .padding(.bottom, 5)
+
+                        Divider()
+
                         Text(log.note)
                             .font(.body)
+                            .multilineTextAlignment(.leading)
                     }
                 }
 
-                // Reflection Section (Only if not empty)
+                // --- Reflection Section ---
                 if !log.reflection.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Reflection:")
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label("Reflection", systemImage: "text.bubble")
                             .font(.title2)
                             .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                            .padding(.bottom, 5)
+
+                        Divider()
+
                         Text(log.reflection)
                             .font(.body)
                             .multilineTextAlignment(.leading)
