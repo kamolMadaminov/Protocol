@@ -29,10 +29,11 @@ class TodayViewModel {
     }
 
     init(context: ModelContext) {
-        self.context = context
-        fetchDefinedHabits()
-        loadLog()
-    }
+            self.context = context
+            fetchDefinedHabits()
+            loadLog()
+        
+        }
 
     func fetchDefinedHabits() {
         let sortDescriptor = SortDescriptor<Habit>(\.creationDate)
@@ -110,10 +111,29 @@ class TodayViewModel {
             print("Error saving daily log: \(error)")
         }
     }
+    
+    func deleteTodaysLog() {
+        let specificDate = todayDate
+        let descriptor = FetchDescriptor<DailyLog>(predicate: #Predicate { $0.date == specificDate })
+
+        do {
+            if let logToDelete = try context.fetch(descriptor).first {
+                print("Deleting log for date: \(logToDelete.date)")
+                context.delete(logToDelete)
+                try context.save()
+                print("Successfully deleted log for today.")
+                // Reload to reset the state variables (mood, habits, note, reflection, log property)
+                loadLog()
+            } else {
+                 print("No log found for today (\(specificDate)) to delete.")
+            }
+        } catch {
+            print("Error deleting or saving after deleting today's log: \(error)")
+        }
+    }
 
     // Helper to provide sorted habit names for the View
     var sortedHabitNames: [String] {
-        // Sort based on the order in definedHabits (which is sorted by creationDate)
         definedHabits.map { $0.name }
     }
 }

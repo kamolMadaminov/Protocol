@@ -25,27 +25,17 @@ struct LogsView: View {
                 } else {
                     ForEach(logs) { log in
                         NavigationLink(destination: DetailedLogView(log: log)) {
-                            HStack { // Main container for the row content
-                                // Combine Mood Emoji and Date
+                            HStack {
                                 Text("\(log.mood) \(formattedDate(log.date))")
                                     .font(.headline)
                                     .lineLimit(1)
-
                                 Spacer()
                                 if !log.note.isEmpty || !log.reflection.isEmpty {
                                     VStack(alignment: .trailing) {
                                         if !log.note.isEmpty {
-                                             Text(log.note)
-                                                 .font(.caption)
-                                                 .foregroundColor(.gray)
-                                                 .lineLimit(1)
-                                                 .truncationMode(.tail)
+                                            Text(log.note) 
                                         } else {
-                                             Text(log.reflection)
-                                                 .font(.caption)
-                                                 .foregroundColor(.gray)
-                                                 .lineLimit(1)
-                                                 .truncationMode(.tail)
+                                            Text(log.reflection)
                                         }
                                     }
                                 }
@@ -53,7 +43,6 @@ struct LogsView: View {
                             .padding(.vertical, 4)
                         }
                     }
-                    .onDelete(perform: deleteLogs)
                 }
             }
             .navigationTitle("Past Logs")

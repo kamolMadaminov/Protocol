@@ -110,9 +110,7 @@ struct DetailedLogView: View {
     }
 }
 
-// Add a PreviewProvider for DetailedLogView
 #Preview {
-    // Create a sample log for the preview
     let sampleLog = DailyLog(
         date: "2025-04-12",
         habits: ["Workout": true, "Read": true, "Meditate": false],
@@ -121,7 +119,6 @@ struct DetailedLogView: View {
         reflection: "Felt aligned with my goals, although meditation was skipped."
     )
 
-    // Embed in NavigationStack for the preview to show the title correctly
     return NavigationStack {
          DetailedLogView(log: sampleLog)
     }

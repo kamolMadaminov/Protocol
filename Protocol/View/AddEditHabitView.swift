@@ -23,6 +23,10 @@ struct AddEditHabitView: View {
     @State private var showingDeleteConfirm = false
     @State private var showingErrorAlert = false
     @State private var errorMessage = ""
+    
+    // Haptic Triggers
+    @State private var triggerSaveHaptic: Bool = false
+    @State private var triggerDeleteHaptic: Bool = false
 
     private var isEditing: Bool {
         habitToEdit != nil
@@ -89,6 +93,8 @@ struct AddEditHabitView: View {
         } message: {
             Text(errorMessage)
         }
+        .sensoryFeedback(.success, trigger: triggerSaveHaptic)
+                .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
     }
 
     //MARK: --- Private Functions ---
@@ -113,6 +119,7 @@ struct AddEditHabitView: View {
 
             try modelContext.save()
             print("Save successful")
+            triggerSaveHaptic.toggle()
             dismiss() // Dismiss on success
 
         } catch {
@@ -129,6 +136,7 @@ struct AddEditHabitView: View {
             modelContext.delete(habit)
             try modelContext.save()
             print("Delete successful")
+            triggerDeleteHaptic.toggle()
             dismiss() // Dismiss on success
 
         } catch {
