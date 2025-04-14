@@ -118,10 +118,10 @@ class TodayViewModel {
             try context.delete(model: DailyLog.self, where: #Predicate { $0.date == specificDate })
             try context.save() // Save deletion
             print("Successfully deleted log for today.")
-            self.currentHabits = [] // Clear habits momentarily until updateHabits is called
             loadLog()
         } catch {
             print("Error deleting or saving after deleting today's log: \(error)")
+            loadLog()
         }
     }
     

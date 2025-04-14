@@ -19,9 +19,9 @@ struct TodayView: View {
     @State private var showingDeleteConfirmAlert = false
     
     private enum FocusableField: Hashable {
-            case note
-            case reflection
-        }
+        case note
+        case reflection
+    }
     
     @FocusState private var focusedField: FocusableField?
     
@@ -146,10 +146,10 @@ struct TodayView: View {
                         }
                         .padding()
                         .contentShape(Rectangle())
-                                                .onTapGesture {
-                                                    print("Background tapped, setting focus to nil.") // Debug print
-                                                    focusedField = nil // <-- Set focus state to nil to dismiss
-                                                }
+                        .onTapGesture {
+                            print("Background tapped, setting focus to nil.") // Debug print
+                            focusedField = nil // <-- Set focus state to nil to dismiss
+                        }
                     }
                     .alert("Clear Today's Log?", isPresented: $showingDeleteConfirmAlert) {
                         Button("Clear Data", role: .destructive) {
