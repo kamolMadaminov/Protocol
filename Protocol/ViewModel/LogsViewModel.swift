@@ -9,6 +9,13 @@ import Foundation
 import SwiftData
 import SwiftUI
 
+// Structure to hold aggregated mood data for the chart
+struct MoodFrequency: Identifiable {
+    let id = UUID()
+    let mood: String
+    var count: Int
+}
+
 // Structure to hold calculated trend data for a single habit
 struct HabitTrendData {
     var weeklyCompletionPercentage: Double = 0.0
@@ -19,6 +26,7 @@ struct HabitTrendData {
 class LogsViewModel {
     // Store calculated data: Key is Habit's PersistentIdentifier for stability
     var trendData: [PersistentIdentifier: HabitTrendData] = [:]
+    var moodChartData: [MoodFrequency] = []
     
     // Store processed logs for easier lookup (Date: Log)
     private var logDict: [Date: DailyLog] = [:]
@@ -61,6 +69,9 @@ class LogsViewModel {
         
         // Recalculate all trends
         calculateAllTrends()
+        
+        // Calculate Mood Chart Data for the last 7 days
+        calculateMoodChartData(forPastDays: 7)
     }
     
     private func calculateAllTrends() {
@@ -140,4 +151,37 @@ class LogsViewModel {
         print("- Habit '\(habit.name)': Current Streak = \(currentStreak)")
         return currentStreak
     }
+    
+    private func calculateMoodChartData(forPastDays days: Int) {
+            let today = calendar.startOfDay(for: Date())
+            guard let startDate = calendar.date(byAdding: .day, value: -(days - 1), to: today) else {
+                self.moodChartData = []
+                return
+            }
+
+            print("Calculating mood chart data from \(startDate) to \(today)")
+
+            // Filter logs within the date range
+            let recentLogs = allLogsSorted.filter { log in
+                guard let logDate = dateFormatter.date(from: log.date) else { return false }
+                let logStartOfDay = calendar.startOfDay(for: logDate)
+                return logStartOfDay >= startDate && logStartOfDay <= today
+            }
+
+            // Tally mood counts
+            var moodCounts: [String: Int] = [:]
+            for log in recentLogs {
+                moodCounts[log.mood, default: 0] += 1
+            }
+            
+             print("- Mood counts for last \(days) days: \(moodCounts)")
+
+            // Convert to MoodFrequency array and sort for consistent chart order
+            // Sorting by mood emoji string provides a basic consistent order
+            self.moodChartData = moodCounts.map { mood, count in
+                MoodFrequency(mood: mood, count: count)
+            }.sorted { $0.mood < $1.mood }
+            
+             print("- Mood chart data prepared: \(self.moodChartData)")
+        }
 }

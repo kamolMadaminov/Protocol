@@ -141,7 +141,7 @@ struct TodayView: View {
                                 .onSubmit {
                                     viewModel.saveLog()
                                 }
-                                .focused($focusedField, equals: .reflection) 
+                                .focused($focusedField, equals: .reflection)
                             }
                         }
                         .padding()

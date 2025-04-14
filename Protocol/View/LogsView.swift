@@ -5,6 +5,7 @@
 //  Created by Kamol Madaminov on 12/04/25.
 //
 
+import Charts
 import SwiftUI
 import SwiftData
 
@@ -67,6 +68,38 @@ struct LogsView: View {
                         }
                     }
                 } // End Trends Section
+                
+                Section("Weekly Mood Summary") {
+                    if viewModel.moodChartData.isEmpty {
+                        Text("Not enough mood data logged recently.")
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical)
+                    } else {
+                        // Create the Chart view
+                        Chart(viewModel.moodChartData) { dataPoint in
+                            BarMark(
+                                x: .value("Count", dataPoint.count),
+                                y: .value("Mood", dataPoint.mood)
+                            )
+                            .foregroundStyle(by: .value("Mood Category", dataPoint.mood))
+                            .annotation(position: .trailing, alignment: .leading) {
+                                Text("\(dataPoint.count)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(height: 150)
+                        .chartYAxis {
+                            AxisMarks(preset: .automatic, position: .leading)
+                        }
+                        .chartXAxis {
+                            AxisMarks(preset: .aligned, stroke: StrokeStyle(lineWidth: 0.5))
+                        }
+                        .padding(.vertical)
+                    }
+                }
+                
                 
                 // --- Section for Past Log Entries ---
                 Section("Past Log Entries") {
