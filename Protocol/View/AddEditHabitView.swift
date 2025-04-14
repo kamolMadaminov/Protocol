@@ -18,6 +18,7 @@ struct AddEditHabitView: View {
 
     // State for the form fields
     @State private var habitName: String = ""
+    @State private var habitDescription: String = ""
 
     // State for managing alerts
     @State private var showingDeleteConfirm = false
@@ -45,6 +46,8 @@ struct AddEditHabitView: View {
                 .onChange(of: habitName) { oldValue, newValue in
                     habitName = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
+            TextField("Description (Optional)", text: $habitDescription, axis: .vertical)
+                .lineLimit(3...)
         }
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
@@ -76,6 +79,7 @@ struct AddEditHabitView: View {
         .onAppear {
             if let habit = habitToEdit {
                 habitName = habit.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                habitDescription = habit.habitDescription ?? ""
             }
         }
         // Alert for Delete Confirmation
@@ -104,15 +108,18 @@ struct AddEditHabitView: View {
             showError("Habit name cannot be empty.")
             return
         }
+        
+        let descriptionToSave = habitDescription.isEmpty ? nil : habitDescription
 
         do {
             if let habit = habitToEdit {
                 // Editing existing habit
-                habit.name = habitName // Already trimmed
+                habit.name = habitName
+                habit.habitDescription = descriptionToSave
                 print("Updating habit ID: \(habit.persistentModelID)")
             } else {
                 // Adding new habit
-                let newHabit = Habit(name: habitName, creationDate: Date())
+                let newHabit = Habit(name: habitName, creationDate: Date(), habitDescription: descriptionToSave)
                 modelContext.insert(newHabit)
                 print("Inserting new habit")
             }

@@ -11,9 +11,19 @@ import SwiftData
 
 struct TodayView: View {
     @Environment(\.modelContext) private var modelContext
+    
+    @Query(sort: \Habit.creationDate) private var habitsFromQuery: [Habit]
+    
     @State private var viewModel: TodayViewModel?
     
     @State private var showingDeleteConfirmAlert = false
+    
+    private enum FocusableField: Hashable {
+            case note
+            case reflection
+        }
+    
+    @FocusState private var focusedField: FocusableField?
     
     var body: some View {
         NavigationStack {
@@ -21,11 +31,6 @@ struct TodayView: View {
                 if let viewModel = viewModel {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 30) {
-                            
-                            Text("Today’s Protocol")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                            
                             // --- Habits Section ---
                             VStack(alignment: .leading, spacing: 16) {
                                 Label("Habits", systemImage: "list.bullet.clipboard")
@@ -35,26 +40,37 @@ struct TodayView: View {
                                 
                                 Divider()
                                 
-                                if viewModel.sortedHabitNames.isEmpty {
+                                if viewModel.sortedHabits.isEmpty {
                                     Text("No habits defined yet. Add some in Settings!")
                                         .foregroundColor(.secondary)
                                         .padding(.vertical)
                                 } else {
-                                    ForEach(viewModel.sortedHabitNames, id: \.self) { habitName in
+                                    ForEach(viewModel.sortedHabits, id: \.persistentModelID) { habit in
                                         Toggle(isOn: Binding(
-                                            get: { viewModel.habits[habitName] ?? false },
+                                            get: { viewModel.habits[habit.name] ?? false },
                                             set: { newValue in
-                                                viewModel.habits[habitName] = newValue
+                                                viewModel.habits[habit.name] = newValue
                                                 viewModel.saveLog()
                                             }
                                         )) {
-                                            Text(habitName)
-                                                .font(.body)
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(habit.name)
+                                                    .font(.body)
+                                                    .foregroundColor(.primary)
+                                                
+                                                if let description = habit.habitDescription, !description.isEmpty {
+                                                    Text(description)
+                                                        .font(.caption)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                            }
+                                            .padding(.vertical, 4)
                                         }
                                         .tint(.accentColor)
-                                        .sensoryFeedback(.success, trigger: viewModel.habits[habitName])
-                                    }
-                                }
+                                        .sensoryFeedback(.success, trigger: viewModel.habits[habit.name] == true)
+                                        
+                                        Divider()
+                                    }                                }
                             }
                             
                             // --- State Log Section ---
@@ -93,6 +109,7 @@ struct TodayView: View {
                                         viewModel.saveLog()
                                     })
                                     .textFieldStyle(.roundedBorder)
+                                    .focused($focusedField, equals: .note)
                                 }
                             }
                             
@@ -124,18 +141,15 @@ struct TodayView: View {
                                 .onSubmit {
                                     viewModel.saveLog()
                                 }
-                                
-                                Button("Clear Today's Log", role: .destructive, action: {
-                                    showingDeleteConfirmAlert = true
-                                })
-                                .buttonStyle(.borderedProminent)
-                                .tint(.red)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .disabled(viewModel.log == nil)
-                                .opacity(viewModel.log == nil ? 0.5 : 1.0)
+                                .focused($focusedField, equals: .reflection) 
                             }
                         }
                         .padding()
+                        .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    print("Background tapped, setting focus to nil.") // Debug print
+                                                    focusedField = nil // <-- Set focus state to nil to dismiss
+                                                }
                     }
                     .alert("Clear Today's Log?", isPresented: $showingDeleteConfirmAlert) {
                         Button("Clear Data", role: .destructive) {
@@ -144,6 +158,19 @@ struct TodayView: View {
                         Button("Cancel", role: .cancel) { }
                     } message: {
                         Text("Are you sure you want to clear all logged data for today? This cannot be undone.")
+                    }
+                    .navigationTitle("Today’s Protocol") // <-- ADD THIS
+                    .navigationBarTitleDisplayMode(.large)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) { // Or .destructiveAction
+                            Button(role: .destructive) {
+                                showingDeleteConfirmAlert = true
+                            } label: {
+                                Label("Reset Today", systemImage: "trash") // Icon + Text Label
+                            }
+                            // Disable button if there's nothing to reset
+                            .disabled(viewModel.log == nil && viewModel.habits.values.allSatisfy { !$0 } && viewModel.mood == "🔥" && viewModel.note.isEmpty && viewModel.reflection.isEmpty)
+                        }
                     }
                     
                 } else {
@@ -155,6 +182,16 @@ struct TodayView: View {
                         }
                 }
             }
+            .task(id: habitsFromQuery) {
+                print("TodayView .task triggered. Habit count from query: \(habitsFromQuery.count)")
+                if viewModel == nil {
+                    print("- Initializing ViewModel.")
+                    viewModel = TodayViewModel(context: modelContext, initialHabits: habitsFromQuery)
+                } else {
+                    print("- Updating ViewModel with new habits.")
+                    viewModel?.updateHabits(habitsFromQuery)
+                }
+            }
         }
     }
 }
@@ -163,11 +200,12 @@ struct TodayView: View {
 #Preview {
     do {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: DailyLog.self, Habit.self, configurations: config) // Add Habit
+        let container = try ModelContainer(for: DailyLog.self, Habit.self, configurations: config)
         
-        let habit1 = Habit(name: "Workout")
-        let habit2 = Habit(name: "Read 30 Mins")
-        let habit3 = Habit(name: "Meditate")
+        // Add sample habits WITH descriptions for preview
+        let habit1 = Habit(name: "Workout", habitDescription: "Morning strength training")
+        let habit2 = Habit(name: "Read 30 Mins", habitDescription: "Read 'Atomic Habits'")
+        let habit3 = Habit(name: "Meditate") // No description
         container.mainContext.insert(habit1)
         container.mainContext.insert(habit2)
         container.mainContext.insert(habit3)
