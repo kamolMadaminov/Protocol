@@ -9,6 +9,20 @@
 import SwiftUI
 import SwiftData
 
+struct CardBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding()
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .background(.background.secondary)
+            .background(.ultraThinMaterial)
+        
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(.separator.opacity(0.5), lineWidth: 1))
+            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    }
+}
+
 struct TodayView: View {
     @AppStorage("hapticsEnabled") var hapticsEnabled: Bool = true
     
@@ -34,53 +48,60 @@ struct TodayView: View {
             Group {
                 if let viewModel = viewModel {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 30) {
+                        VStack(alignment: .leading, spacing: 20) {
                             // --- Habits Section ---
-                            VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 12) {
                                 Label("Habits", systemImage: "list.bullet.clipboard")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
+                                    .font(.title2.bold())
                                     .foregroundStyle(.secondary)
-                                
-                                Divider()
                                 
                                 if viewModel.sortedHabits.isEmpty {
                                     Text("No habits defined yet. Add some in Settings!")
+                                        .foregroundColor(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                        .padding(.vertical)
                                 } else {
-                                    ForEach(viewModel.sortedHabits, id: \.persistentModelID) { habit in
-                                        let habitToggleRow = Toggle(isOn: Binding(
-                                            get: { viewModel.habits[habit.name] ?? false },
-                                            set: { newValue in
-                                                viewModel.habits[habit.name] = newValue
-                                                viewModel.saveLog()
-                                            }
-                                        )) {
-                                            VStack(alignment: .leading, spacing: 4) {
-                                                Text(habit.name)
-                                                if let description = habit.habitDescription, !description.isEmpty {
-                                                    Text(description)
+                                    VStack(alignment: .leading, spacing: 10){
+                                        ForEach(viewModel.sortedHabits, id: \.persistentModelID) { habit in
+                                            let habitToggleRow = Toggle(isOn: Binding(
+                                                get: { viewModel.habits[habit.name] ?? false },
+                                                set: { newValue in
+                                                    viewModel.habits[habit.name] = newValue
+                                                    viewModel.saveLog()
                                                 }
+                                            )) {
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(habit.name)
+                                                        .font(.body) // Ensure clarity
+                                                        .foregroundColor(.primary)
+                                                    if let description = habit.habitDescription, !description.isEmpty {
+                                                        Text(description)
+                                                            .font(.caption)
+                                                            .foregroundColor(.secondary)
+                                                    }
+                                                }
+                                                .padding(.vertical, 4)
                                             }
-                                            .padding(.vertical, 4)
+                                                .tint(.accentColor)
+                                            
+                                            if hapticsEnabled {
+                                                habitToggleRow
+                                                    .sensoryFeedback(.success, trigger: viewModel.habits[habit.name] == true)
+                                            } else {
+                                                habitToggleRow
+                                            }
+                                            
+                                            Divider()
                                         }
-                                            .tint(.accentColor)
-                                        
-                                        if hapticsEnabled {
-                                            habitToggleRow
-                                                .sensoryFeedback(.success, trigger: viewModel.habits[habit.name] == true)
-                                        } else {
-                                            habitToggleRow
-                                        }
-                                        
-                                        Divider()
                                     }
                                 }
                             }
-                            
+                            .cardStyle()
                             // --- State Log Section ---
                             VStack(alignment: .leading, spacing: 16) {
-                                Label("State Log", systemImage: "brain.head.profile") // ... Title formatting ...
-                                Divider()
+                                Label("State Log", systemImage: "brain.head.profile")
+                                    .font(.title2.bold())
+                                    .foregroundStyle(.secondary)
                                 
                                 // Mood Picker Sub-section
                                 VStack(alignment: .leading) {
@@ -90,9 +111,12 @@ struct TodayView: View {
                                         get: { viewModel.mood },
                                         set: { viewModel.mood = $0; viewModel.saveLog() }
                                     )) {
+                                        Text("😌").tag("😌")
                                         Text("🔥").tag("🔥")
-                                        Text("🌫️").tag("🌫️")
-                                        Text("⚡️").tag("⚡️")
+                                        Text("😎").tag("😎")
+                                        Text("😔").tag("😔")
+                                        Text("🤯").tag("🤯")
+                                        Text("🥶").tag("🥶")
                                     }
                                         .pickerStyle(.segmented)
                                     if hapticsEnabled {
@@ -106,34 +130,34 @@ struct TodayView: View {
                                 // Note Sub-section
                                 VStack(alignment: .leading) {
                                     Text("Note")
-                                        .font(.headline) // Sub-header
+                                        .font(.headline)
                                     TextField("Add a brief note (optional)...", text: Binding(
                                         get: { viewModel.note },
                                         set: { viewModel.note = $0 }
                                     ), onCommit: {
                                         viewModel.saveLog()
                                     })
+                                    .textFieldStyle(.plain)
+                                    .padding(8)
+                                    .background(.background)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .focused($focusedField, equals: .note)
                                     .textFieldStyle(.roundedBorder)
                                     .focused($focusedField, equals: .note)
                                 }
                             }
-                            
+                            .cardStyle()
                             // --- Reflection Section ---
-                            VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: 12) {
                                 Label("Reflection", systemImage: "text.bubble")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
+                                    .font(.title2.bold())
                                     .foregroundStyle(.secondary)
-                                
-                                Divider()
                                 
                                 // Reflection Prompt Sub-section
                                 VStack(alignment: .leading) {
                                     Text("Prompt:")
                                         .font(.headline)
                                     Text("“Did your actions match your mission?”")
-                                        .font(.callout)
-                                        .foregroundStyle(.secondary)
                                         .padding(.bottom, 4)
                                 }
                                 
@@ -141,18 +165,22 @@ struct TodayView: View {
                                     get: { viewModel.reflection },
                                     set: { viewModel.reflection = $0 }
                                 ), axis: .vertical)
-                                .textFieldStyle(.roundedBorder)
+                                .textFieldStyle(.plain)
+                                .padding(8)
+                                .background(.background)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
                                 .lineLimit(5...10)
-                                .onSubmit {
-                                    viewModel.saveLog()
-                                }
+                                .onSubmit { viewModel.saveLog() }
                                 .focused($focusedField, equals: .reflection)
                             }
+                            .cardStyle()
                         }
-                        .padding()
+                        .padding(.horizontal)
+                        .padding(.vertical)
+                        .background(Color(uiColor: .systemGroupedBackground))
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            focusedField = nil // <-- Set focus state to nil to dismiss
+                            focusedField = nil
                         }
                     }
                     .alert("Clear Today's Log?", isPresented: $showingDeleteConfirmAlert) {
@@ -206,6 +234,12 @@ struct TodayView: View {
                 }
             }
         }
+    }
+}
+
+extension View {
+    func cardStyle() -> some View {
+        modifier(CardBackground())
     }
 }
 
