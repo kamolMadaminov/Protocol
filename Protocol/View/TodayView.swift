@@ -46,11 +46,9 @@ struct TodayView: View {
                                 
                                 if viewModel.sortedHabits.isEmpty {
                                     Text("No habits defined yet. Add some in Settings!")
-                                        .foregroundColor(.secondary)
-                                        .padding(.vertical)
                                 } else {
                                     ForEach(viewModel.sortedHabits, id: \.persistentModelID) { habit in
-                                        Toggle(isOn: Binding(
+                                        let habitToggleRow = Toggle(isOn: Binding(
                                             get: { viewModel.habits[habit.name] ?? false },
                                             set: { newValue in
                                                 viewModel.habits[habit.name] = newValue
@@ -59,38 +57,36 @@ struct TodayView: View {
                                         )) {
                                             VStack(alignment: .leading, spacing: 4) {
                                                 Text(habit.name)
-                                                    .font(.body)
-                                                    .foregroundColor(.primary)
-                                                
                                                 if let description = habit.habitDescription, !description.isEmpty {
                                                     Text(description)
-                                                        .font(.caption)
-                                                        .foregroundColor(.secondary)
                                                 }
                                             }
                                             .padding(.vertical, 4)
                                         }
-                                        .tint(.accentColor)
-                                        .sensoryFeedback(.success, trigger: viewModel.habits[habit.name] == true)
+                                            .tint(.accentColor)
+                                        
+                                        if hapticsEnabled {
+                                            habitToggleRow
+                                                .sensoryFeedback(.success, trigger: viewModel.habits[habit.name] == true)
+                                        } else {
+                                            habitToggleRow
+                                        }
                                         
                                         Divider()
-                                    }                                }
+                                    }
+                                }
                             }
                             
                             // --- State Log Section ---
                             VStack(alignment: .leading, spacing: 16) {
-                                Label("State Log", systemImage: "brain.head.profile")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.secondary)
-                                
+                                Label("State Log", systemImage: "brain.head.profile") // ... Title formatting ...
                                 Divider()
                                 
                                 // Mood Picker Sub-section
                                 VStack(alignment: .leading) {
-                                    Text("Mood")
-                                        .font(.headline)
-                                    Picker("Mood", selection: Binding(
+                                    Text("Mood").font(.headline)
+                                    
+                                    let moodPicker = Picker("Mood", selection: Binding(
                                         get: { viewModel.mood },
                                         set: { viewModel.mood = $0; viewModel.saveLog() }
                                     )) {
@@ -98,8 +94,13 @@ struct TodayView: View {
                                         Text("🌫️").tag("🌫️")
                                         Text("⚡️").tag("⚡️")
                                     }
-                                    .pickerStyle(.segmented)
-                                    .sensoryFeedback(.selection, trigger: viewModel.mood)
+                                        .pickerStyle(.segmented)
+                                    if hapticsEnabled {
+                                        moodPicker
+                                            .sensoryFeedback(.selection, trigger: viewModel.mood)
+                                    } else {
+                                        moodPicker
+                                    }
                                 }
                                 
                                 // Note Sub-section

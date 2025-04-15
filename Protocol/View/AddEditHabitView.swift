@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct AddEditHabitView: View {
+    @AppStorage("hapticsEnabled") var hapticsEnabled: Bool = true
+    
     // Environment properties
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
@@ -40,7 +42,7 @@ struct AddEditHabitView: View {
 
     var body: some View {
         // No inner NavigationStack needed here - relies on presentation context
-        Form {
+        let formContent = Form {
             TextField("Habit Name", text: $habitName)
                 // Automatically trim whitespace
                 .onChange(of: habitName) { oldValue, newValue in
@@ -97,8 +99,14 @@ struct AddEditHabitView: View {
         } message: {
             Text(errorMessage)
         }
-        .sensoryFeedback(.success, trigger: triggerSaveHaptic)
-                .sensoryFeedback(.success, trigger: triggerDeleteHaptic)
+        
+        if hapticsEnabled {
+            formContent
+                .sensoryFeedback(.success, trigger: triggerSaveHaptic)
+                .sensoryFeedback(.error, trigger: triggerDeleteHaptic)
+        } else {
+            formContent
+        }
     }
 
     //MARK: --- Private Functions ---
