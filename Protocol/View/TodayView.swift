@@ -18,6 +18,8 @@ struct TodayView: View {
     
     @State private var showingDeleteConfirmAlert = false
     
+    @State private var showingAddHabitSheet = false
+    
     private enum FocusableField: Hashable {
         case note
         case reflection
@@ -159,17 +161,24 @@ struct TodayView: View {
                     } message: {
                         Text("Are you sure you want to clear all logged data for today? This cannot be undone.")
                     }
-                    .navigationTitle("Today’s Protocol") // <-- ADD THIS
+                    .navigationTitle("Today’s Protocol")
                     .navigationBarTitleDisplayMode(.large)
                     .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) { // Or .destructiveAction
+                        ToolbarItem(placement: .navigationBarLeading) {
                             Button(role: .destructive) {
                                 showingDeleteConfirmAlert = true
                             } label: {
-                                Label("Reset Today", systemImage: "trash") // Icon + Text Label
+                                Label("Reset Today", systemImage: "repeat")
                             }
-                            // Disable button if there's nothing to reset
                             .disabled(viewModel.log == nil && viewModel.habits.values.allSatisfy { !$0 } && viewModel.mood == "🔥" && viewModel.note.isEmpty && viewModel.reflection.isEmpty)
+                        }
+                        
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                showingAddHabitSheet = true
+                            } label: {
+                                Label("Add Habit", systemImage: "plus")
+                            }
                         }
                     }
                     
@@ -180,6 +189,11 @@ struct TodayView: View {
                                 self.viewModel = TodayViewModel(context: modelContext)
                             }
                         }
+                }
+            }
+            .sheet(isPresented: $showingAddHabitSheet) {
+                NavigationStack {
+                    AddEditHabitView(habitToEdit: nil)
                 }
             }
             .task(id: habitsFromQuery) {
