@@ -10,6 +10,8 @@ import SwiftUI
 import SwiftData
 
 struct TodayView: View {
+    @AppStorage("hapticsEnabled") var hapticsEnabled: Bool = true
+    
     @Environment(\.modelContext) private var modelContext
     
     @Query(sort: \Habit.creationDate) private var habitsFromQuery: [Habit]
@@ -149,7 +151,6 @@ struct TodayView: View {
                         .padding()
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            print("Background tapped, setting focus to nil.") // Debug print
                             focusedField = nil // <-- Set focus state to nil to dismiss
                         }
                     }
@@ -197,12 +198,9 @@ struct TodayView: View {
                 }
             }
             .task(id: habitsFromQuery) {
-                print("TodayView .task triggered. Habit count from query: \(habitsFromQuery.count)")
                 if viewModel == nil {
-                    print("- Initializing ViewModel.")
                     viewModel = TodayViewModel(context: modelContext, initialHabits: habitsFromQuery)
                 } else {
-                    print("- Updating ViewModel with new habits.")
                     viewModel?.updateHabits(habitsFromQuery)
                 }
             }

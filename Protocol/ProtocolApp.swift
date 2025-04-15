@@ -11,23 +11,30 @@ import SwiftData
 @main
 struct ProtocolApp: App {
     
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            DailyLog.self,
-            Habit.self
-        ])
+    let sharedModelContainer: ModelContainer // Changed to let
+
+    init() {
+        // Initialize the container first
+        let schema = Schema([DailyLog.self, Habit.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            print("ModelContainer created successfully.") // Debug print
+            
+            // --- Trigger Data Retention Check ---
+            // This runs the check in the background via Task.detached within the manager
+             print("Triggering data retention check...") // Debug print
+            DataRetentionManager.performCleanup(container: sharedModelContainer)
+            // --- End Trigger ---
+            
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+             fatalError("Could not create ModelContainer: \(error)")
         }
-    }()
+    }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView() 
         }
         .modelContainer(sharedModelContainer)
     }
