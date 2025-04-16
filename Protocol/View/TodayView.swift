@@ -75,8 +75,6 @@ struct TodayView: View {
                                                         viewModel.saveLog()
                                                     }
                                                     .sensoryFeedback(.success, trigger: isCompleted && hapticsEnabled)
-                                            }
-                                            
                                             
                                             VStack(alignment: .leading, spacing: 2) {
                                                 Text(habit.name)

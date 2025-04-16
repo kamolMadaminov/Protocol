@@ -11,7 +11,9 @@ import SwiftData
 @main
 struct ProtocolApp: App {
     
-    let sharedModelContainer: ModelContainer // Changed to let
+    let sharedModelContainer: ModelContainer
+    
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
     init() {
         // Initialize the container first
@@ -34,8 +36,14 @@ struct ProtocolApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView() 
-        }
-        .modelContainer(sharedModelContainer)
+                    if hasCompletedOnboarding {
+                        ContentView()
+                    } else {
+                        OnboardingContainerView(onComplete: {
+                            hasCompletedOnboarding = true
+                        })
+                    }
+                }
+                .modelContainer(sharedModelContainer)
     }
 }
