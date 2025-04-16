@@ -1,21 +1,12 @@
-//
-//  OnboardingViews.swift
-//  Protocol
-//
-//  Created by Kamol Madaminov on 16/04/25.
-//
-
 import SwiftUI
 
-// Main container for the onboarding pages
 struct OnboardingContainerView: View {
-    var onComplete: () -> Void // Callback action for when onboarding finishes
+    var onComplete: () -> Void
 
-    @State private var currentTab = 0 // Tracks the current page index
+    @State private var currentTab = 0
 
     var body: some View {
         TabView(selection: $currentTab) {
-            // Page 1: Welcome
             OnboardingPageView(
                 imageName: "figure.wave",
                 title: "Welcome to Protocol",
@@ -25,9 +16,8 @@ struct OnboardingContainerView: View {
             )
             .tag(0)
 
-            // Page 2: Today Tab
             OnboardingPageView(
-                imageName: "doc.text.image", // Matches Today tab icon
+                imageName: "doc.text.image",
                 title: "Track Your Day",
                 description: "Use the 'Today' tab as your daily dashboard. Log completed habits, record your mood, add brief notes, and reflect on your day.",
                 isLastPage: false,
@@ -35,94 +25,105 @@ struct OnboardingContainerView: View {
             )
             .tag(1)
 
-            // Page 3: Logs Tab
             OnboardingPageView(
-                imageName: "list.bullet.clipboard", // Matches Logs tab icon
+                imageName: "list.bullet.clipboard",
                 title: "Review Your Journey",
                 description: "The 'Logs' tab provides a historical view of your entries. Observe patterns and track your progress over time.",
-                 isLastPage: false,
-                 currentPage: $currentTab
-             )
+                isLastPage: false,
+                currentPage: $currentTab
+            )
             .tag(2)
 
-            // Page 4: Settings Tab & Finish
             OnboardingPageView(
-                imageName: "gear", // Matches Settings tab icon
+                imageName: "gear",
                 title: "Customize & Manage",
                 description: "Define the habits you want to track and manage application settings in the 'Settings' tab. Tailor Protocol to your needs.",
-                isLastPage: true, // This is the final page
+                isLastPage: true,
                 currentPage: $currentTab,
-                onComplete: onComplete // Pass the completion action here
+                onComplete: onComplete
             )
             .tag(3)
         }
-        .tabViewStyle(.page(indexDisplayMode: .always)) // Creates the swipeable pages with dots
-        .background(Color(.systemGroupedBackground).ignoresSafeArea()) // Set a background
+        .tabViewStyle(.page(indexDisplayMode: .always))
+        .background(Color(hex: "#1E2A47").ignoresSafeArea()) // Apply Navy Blue background
     }
 }
 
-// Reusable view for the content of each onboarding page
 struct OnboardingPageView: View {
     let imageName: String
     let title: String
     let description: String
     let isLastPage: Bool
     @Binding var currentPage: Int
-    var onComplete: (() -> Void)? = nil // Only the last page uses this
+    var onComplete: (() -> Void)? = nil
 
     var body: some View {
-        VStack(spacing: 20) { // Adjusted spacing
+        VStack(spacing: 20) {
             Spacer()
 
             Image(systemName: imageName)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 120, height: 120) // Slightly larger icon
-                .foregroundStyle(Color.accentColor)
+                .frame(width: 120, height: 120)
+                .foregroundStyle(Color(hex: "#30D0A0")) // Apply Emerald Green to icons
                 .padding(.bottom, 30)
 
+            Spacer()
 
             Text(title)
-                .font(.system(.largeTitle, design: .rounded, weight: .bold)) // Refined font
+                .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                .foregroundColor(.white) // Ensure text is readable on Navy Blue
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
             Text(description)
                 .font(.body)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.white.opacity(0.7)) // Use a lighter shade for description
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 30) // Adjust padding
-                .lineSpacing(5) // Add line spacing for readability
+                .padding(.horizontal, 30)
+                .lineSpacing(5)
 
             Spacer()
-            Spacer() // Add more space to push button lower
 
-            // Show "Get Started" on the last page, "Next" otherwise
             if isLastPage {
-                 Button("Get Started") {
-                     onComplete?() // Call the completion handler passed from Container
-                 }
-                 .buttonStyle(.borderedProminent)
-                 .controlSize(.large) // Make button larger
-                 .padding(.bottom, 50)
-             } else {
-                 Button("Next") {
-                     withAnimation { // Animate page transition
-                         currentPage += 1
-                     }
-                 }
-                 .buttonStyle(.bordered)
-                 .controlSize(.large)
-                 .padding(.bottom, 50)
-             }
+                Button("Get Started") {
+                    onComplete?()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color(hex: "#4EC5A7")) // Apply Teal Green to "Get Started" button
+                .controlSize(.large)
+                .padding(.bottom, 50)
+            } else {
+                Button("Next") {
+                    withAnimation {
+                        currentPage += 1
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(Color(hex: "#30D0A0")) // Apply Emerald Green to "Next" button
+                .controlSize(.large)
+                .padding(.bottom, 50)
+            }
         }
-        .padding(.vertical) // Add padding to the VStack content
+        .padding(.vertical)
     }
 }
 
-// Preview for the Onboarding Flow
 #Preview("Onboarding Flow") {
     OnboardingContainerView(onComplete: {
         print("Preview: Onboarding Completed!")
     })
+}
+
+extension Color {
+    init(hex: String) {
+        var cleanString = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        cleanString = cleanString.replacingOccurrences(of: "#", with: "")
+        var base: UInt64 = 0
+        Scanner(string: cleanString).scanHexInt64(&base)
+        let red = Double((base >> 16) & 0xFF) / 255.0
+        let green = Double((base >> 8) & 0xFF) / 255.0
+        let blue = Double(base & 0xFF) / 255.0
+        self.init(red: red, green: green, blue: blue)
+    }
 }
