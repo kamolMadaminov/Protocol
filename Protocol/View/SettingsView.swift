@@ -33,7 +33,10 @@ struct SettingsView: View {
                 if let vm = viewModel {
                     List {
                         Section("Preferences") {
-                            Toggle("Enable Haptics", isOn: $hapticsEnabled)
+                            Toggle(isOn: $hapticsEnabled) {
+                                // Use a Label view here for the icon and text
+                                Label("Enable Haptics", systemImage: "iphone.radiowaves.left.and.right") // Or choose another relevant SF Symbol
+                            }
                         }
                         
                         Section("Data Management") {

@@ -37,9 +37,7 @@ class TodayViewModel {
         
     }
     
-    private func initializeHabitStatuses(using habitsToUse: [Habit]) { // <-- Renamed and takes parameter
-        print("Initializing habit statuses for \(habitsToUse.count) habits.")
-        // Create dictionary based on the names of the habits passed in
+    private func initializeHabitStatuses(using habitsToUse: [Habit]) {
         self.habits = Dictionary(uniqueKeysWithValues: habitsToUse.map { ($0.name, false) })
     }
     
@@ -47,7 +45,8 @@ class TodayViewModel {
         let specificDate = todayDate
         let descriptor = FetchDescriptor<DailyLog>(predicate: #Predicate { $0.date == specificDate })
         
-        initializeHabitStatuses(using: self.currentHabits)
+        // Reset state before loading or if no log exists
+        initializeHabitStatuses(using: self.currentHabits) // Use the current list
         self.mood = "🔥"
         self.note = ""
         self.reflection = ""
@@ -60,44 +59,40 @@ class TodayViewModel {
                 self.note = result.note
                 self.reflection = result.reflection
                 
-                var updatedHabits = self.habits
-                
+                var updatedHabits = self.habits // Start with current defaults (all false)
+
+                // Merge saved statuses, ignoring habits that no longer exist
                 for (loggedHabitName, loggedStatus) in result.habits {
                     if updatedHabits[loggedHabitName] != nil {
-                        updatedHabits[loggedHabitName] = loggedStatus
-                    } else {
-                        print("- Skipping '\(loggedHabitName)' (no longer defined)")
+                         updatedHabits[loggedHabitName] = loggedStatus
                     }
-                    
                 }
-                self.habits = updatedHabits
-            } else {
-                print("No existing log found for today.")
+                 self.habits = updatedHabits // Apply the merged statuses
             }
         } catch {
             print("Error loading daily log: \(error)")
-            initializeHabitStatuses(using: self.currentHabits)
-            self.mood = "🔥"
-            self.note = ""
-            self.reflection = ""
-            self.log = nil
+             // Ensure clean state on error
+             initializeHabitStatuses(using: self.currentHabits)
+             self.mood = "🔥"
+             self.note = ""
+             self.reflection = ""
+             self.log = nil
         }
     }
     
     
     func saveLog() {
-        let habitsToSave = self.habits.filter { habitName, _ in
-            self.currentHabits.contains { $0.name == habitName }
-        }
-        
+         // Filter habits to save only those currently defined in currentHabits
+         let habitsToSave = self.habits.filter { habitName, _ in
+             self.currentHabits.contains { $0.name == habitName }
+         }
+
         if log == nil {
-            print("- Creating new log entry.")
             log = DailyLog(date: todayDate, habits: habitsToSave, mood: mood, note: note, reflection: reflection)
             if let newLog = log {
                 context.insert(newLog)
             }
         } else {
-            print("- Updating existing log entry.")
             log?.habits = habitsToSave
             log?.mood = mood
             log?.note = note
@@ -114,34 +109,27 @@ class TodayViewModel {
     func deleteTodaysLog() {
         let specificDate = todayDate
         do {
-            print("Attempting to delete log for date: \(specificDate)")
             try context.delete(model: DailyLog.self, where: #Predicate { $0.date == specificDate })
             try context.save() // Save deletion
-            print("Successfully deleted log for today.")
-            loadLog()
+            loadLog() // Reload to reset the view model state
         } catch {
             print("Error deleting or saving after deleting today's log: \(error)")
-            loadLog()
+            loadLog() // Still try to reload state
         }
     }
     
     func updateHabits(_ newHabits: [Habit]) {
-        print("ViewModel updateHabits received \(newHabits.count) habits.")
         let oldHabitNames = Set(self.currentHabits.map { $0.name })
         let newHabitNames = Set(newHabits.map { $0.name })
         
         if oldHabitNames != newHabitNames {
-            print("Habit list changed. Updating internal state.")
             self.currentHabits = newHabits
-            loadLog()
-        } else {
-            print("Habit list unchanged, skipping state update.")
+            loadLog() // Reload log to incorporate new habit structure
         }
     }
     
     // Helper to provide sorted habit names for the View
     var sortedHabits: [Habit] {
-        
         currentHabits.sorted { $0.creationDate < $1.creationDate }
     }
 }
