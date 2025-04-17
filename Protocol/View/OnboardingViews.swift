@@ -45,7 +45,7 @@ struct OnboardingContainerView: View {
             .tag(3)
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
-        .background(Color(hex: "#1E2A47").ignoresSafeArea()) // Apply Navy Blue background
+        .background().ignoresSafeArea()
     }
 }
 
@@ -60,6 +60,7 @@ struct OnboardingPageView: View {
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
+            Spacer()
 
             Image(systemName: imageName)
                 .resizable()
@@ -69,16 +70,15 @@ struct OnboardingPageView: View {
                 .padding(.bottom, 30)
 
             Spacer()
+            Spacer()
 
             Text(title)
                 .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                .foregroundColor(.white) // Ensure text is readable on Navy Blue
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
             Text(description)
                 .font(.body)
-                .foregroundColor(.white.opacity(0.7)) // Use a lighter shade for description
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 30)
                 .lineSpacing(5)
