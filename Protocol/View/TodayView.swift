@@ -173,6 +173,12 @@ struct TodayView: View {
                             .lineLimit(5...10)
                             .onSubmit { viewModel.saveLog() }
                             .focused($focusedField, equals: .reflection)
+                            .onChange(of: focusedField) { newFocus in
+                                if newFocus != .reflection {
+                                    viewModel.saveLog()
+                                }
+                            }
+
                         }
                         .cardStyle()
                     }
