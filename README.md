@@ -24,7 +24,7 @@ Designed for users who prioritize structure, discipline, and intentional reflect
 - Markdown-compatible input
 - All data stored locally using SwiftData
 
-### 📊 Stats & Trends (Planned)
+### 📊 Stats & Trends
 - Weekly completion percentage
 - Mood distribution or trendline
 - Reflection entry streaks
@@ -55,10 +55,9 @@ The goal is to ship a real product to the App Store while showcasing practical s
 ## Roadmap
 
 - [x] MVP with habits, mindset, and reflection input
-- [ ] Basic analytics (completion %, streaks)
-- [ ] Prompt rotation system
+- [x] Basic analytics (completion %, streaks)
 - [ ] iCloud sync (optional future)
-- [ ] App Store release
+- [x] App Store release
 
 ---
 
