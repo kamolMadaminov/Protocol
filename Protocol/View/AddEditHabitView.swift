@@ -44,10 +44,7 @@ struct AddEditHabitView: View {
         // No inner NavigationStack needed here - relies on presentation context
         let formContent = Form {
             TextField("Habit Name", text: $habitName)
-                // Automatically trim whitespace
-                .onChange(of: habitName) { oldValue, newValue in
-                    habitName = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
-                }
+
             TextField("Description (Optional)", text: $habitDescription, axis: .vertical)
                 .lineLimit(3...)
         }

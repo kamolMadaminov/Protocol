@@ -17,7 +17,7 @@ class TodayViewModel {
     var log: DailyLog?
     
     var habits: [String: Bool] = [:]
-    var mood: String = "🔥"
+    var mood: String = "🙂"
     var note: String = ""
     var reflection: String = ""
     
@@ -47,7 +47,7 @@ class TodayViewModel {
         
         // Reset state before loading or if no log exists
         initializeHabitStatuses(using: self.currentHabits) // Use the current list
-        self.mood = "🔥"
+        self.mood = "🙂"
         self.note = ""
         self.reflection = ""
         self.log = nil
@@ -73,7 +73,7 @@ class TodayViewModel {
             print("Error loading daily log: \(error)")
              // Ensure clean state on error
              initializeHabitStatuses(using: self.currentHabits)
-             self.mood = "🔥"
+             self.mood = "🙂"
              self.note = ""
              self.reflection = ""
              self.log = nil
@@ -131,5 +131,16 @@ class TodayViewModel {
     // Helper to provide sorted habit names for the View
     var sortedHabits: [Habit] {
         currentHabits.sorted { $0.creationDate < $1.creationDate }
+    }
+    
+    func moodDescription(for emoji: String) -> String {
+        switch emoji {
+        case "🥀": return "Barely made it"
+        case "😮‍💨": return "Pushed through"
+        case "🙂": return "Neutral"
+        case "💪": return "Felt strong"
+        case "🚀": return "On fire"
+        default: return ""
+        }
     }
 }

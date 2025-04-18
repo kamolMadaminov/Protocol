@@ -106,18 +106,19 @@ struct TodayView: View {
                             
                             // Mood Picker Sub-section
                             VStack(alignment: .leading) {
-                                Text("Mood").font(.headline)
+                                Text("Mood – \(viewModel.moodDescription(for: viewModel.mood))")
+                                    .font(.headline)
+
                                 
                                 let moodPicker = Picker("Mood", selection: Binding(
                                     get: { viewModel.mood },
                                     set: { viewModel.mood = $0; viewModel.saveLog() }
                                 )) {
-                                    Text("😌").tag("😌")
-                                    Text("🔥").tag("🔥")
-                                    Text("😎").tag("😎")
-                                    Text("😔").tag("😔")
-                                    Text("🤯").tag("🤯")
-                                    Text("🥶").tag("🥶")
+                                    Text("🥀").tag("🥀")
+                                    Text("😮‍💨").tag("😮‍💨")
+                                    Text("🙂").tag("🙂")
+                                    Text("💪").tag("💪")
+                                    Text("🚀").tag("🚀")
                                 }
                                     .pickerStyle(.segmented)
                                 if hapticsEnabled {
@@ -207,7 +208,7 @@ struct TodayView: View {
                             } label: {
                                 Label("Reset Today", systemImage: "arrow.counterclockwise")
                             }
-                            .disabled(viewModel.log == nil && viewModel.habits.values.allSatisfy { !$0 } && viewModel.mood == "🔥" && viewModel.note.isEmpty && viewModel.reflection.isEmpty)
+                            .disabled(viewModel.log == nil && viewModel.habits.values.allSatisfy { !$0 } && viewModel.mood == "🙂" && viewModel.note.isEmpty && viewModel.reflection.isEmpty)
                         }
                         
                         ToolbarItem(placement: .navigationBarTrailing) {
