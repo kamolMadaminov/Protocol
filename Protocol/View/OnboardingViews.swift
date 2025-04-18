@@ -4,47 +4,68 @@ struct OnboardingContainerView: View {
     var onComplete: () -> Void
 
     @State private var currentTab = 0
+    private let totalPages = 4 // Define the total number of pages
 
     var body: some View {
-        TabView(selection: $currentTab) {
-            OnboardingPageView(
-                imageName: "figure.wave",
-                title: "Welcome to Protocol",
-                description: "Your personal companion for tracking daily habits, mood, and reflections to foster self-awareness and consistency.",
-                isLastPage: false,
-                currentPage: $currentTab
-            )
-            .tag(0)
+        VStack {
+            TabView(selection: $currentTab) {
+                OnboardingPageView(
+                    imageName: "figure.wave",
+                    title: "Welcome to Protocol",
+                    description: "Your personal companion for tracking daily habits, mood, and reflections to foster self-awareness and consistency."
+                )
+                .tag(0)
 
-            OnboardingPageView(
-                imageName: "doc.text.image",
-                title: "Track Your Day",
-                description: "Use the 'Today' tab as your daily dashboard. Log completed habits, record your mood, add brief notes, and reflect on your day.",
-                isLastPage: false,
-                currentPage: $currentTab
-            )
-            .tag(1)
+                OnboardingPageView(
+                    imageName: "doc.text.image",
+                    title: "Track Your Day",
+                    description: "Use the 'Today' tab as your daily dashboard. Log completed habits, record your mood, add brief notes, and reflect on your day."
+                )
+                .tag(1)
 
-            OnboardingPageView(
-                imageName: "list.bullet.clipboard",
-                title: "Review Your Journey",
-                description: "The 'Logs' tab provides a historical view of your entries. Observe patterns and track your progress over time.",
-                isLastPage: false,
-                currentPage: $currentTab
-            )
-            .tag(2)
+                OnboardingPageView(
+                    imageName: "list.bullet.clipboard",
+                    title: "Review Your Journey",
+                    description: "The 'Logs' tab provides a historical view of your entries. Observe patterns and track your progress over time."
+                )
+                .tag(2)
 
-            OnboardingPageView(
-                imageName: "gear",
-                title: "Customize & Manage",
-                description: "Define the habits you want to track and manage application settings in the 'Settings' tab. Tailor Protocol to your needs.",
-                isLastPage: true,
-                currentPage: $currentTab,
-                onComplete: onComplete
-            )
-            .tag(3)
+                OnboardingPageView(
+                    imageName: "gear",
+                    title: "Customize & Manage",
+                    description: "Define the habits you want to track and manage application settings in the 'Settings' tab. Tailor Protocol to your needs."
+                )
+                .tag(3)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+
+            // Single Button outside the TabView
+            if currentTab == totalPages - 1 { // Last page
+                Button("Get Started") {
+                    withAnimation { // Add animation for the completion action
+                        onComplete()
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color(hex: "#4EC5A7")) // Teal Green
+                .controlSize(.large)
+                .padding(.bottom, 50)
+                .transition(.opacity.combined(with: .scale)) // Add transition for the button itself
+            } else { // Not the last page
+                Button("Next") {
+                    withAnimation { // Animate the tab change
+                        currentTab += 1
+                    }
+                }
+                .buttonStyle(.bordered)
+                .tint(Color(hex: "#30D0A0")) // Emerald Green
+                .controlSize(.large)
+                .padding(.bottom, 50)
+                .transition(.opacity.combined(with: .scale)) // Add transition for the button itself
+            }
+            // Ensure the button has consistent height space even when transitioning
+//            .frame(height: 50 + 50) // Approximate height of button + padding
         }
-        .tabViewStyle(.page(indexDisplayMode: .always))
         .background().ignoresSafeArea()
     }
 }
@@ -53,10 +74,7 @@ struct OnboardingPageView: View {
     let imageName: String
     let title: String
     let description: String
-    let isLastPage: Bool
-    @Binding var currentPage: Int
-    var onComplete: (() -> Void)? = nil
-
+    
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -66,7 +84,7 @@ struct OnboardingPageView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 120, height: 120)
-                .foregroundStyle(Color(hex: "#30D0A0")) // Apply Emerald Green to icons
+                .foregroundStyle(Color(hex: "#30D0A0")) // Emerald Green
                 .padding(.bottom, 30)
 
             Spacer()
@@ -84,28 +102,9 @@ struct OnboardingPageView: View {
                 .lineSpacing(5)
 
             Spacer()
-
-            if isLastPage {
-                Button("Get Started") {
-                    onComplete?()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Color(hex: "#4EC5A7")) // Apply Teal Green to "Get Started" button
-                .controlSize(.large)
-                .padding(.bottom, 50)
-            } else {
-                Button("Next") {
-                    withAnimation {
-                        currentPage += 1
-                    }
-                }
-                .buttonStyle(.bordered)
-                .tint(Color(hex: "#30D0A0")) // Apply Emerald Green to "Next" button
-                .controlSize(.large)
-                .padding(.bottom, 50)
-            }
+            // Button removed from here
         }
-        .padding(.vertical)
+        // Removed padding(.vertical) as spacing is handled by Spacers and button padding in container
     }
 }
 
