@@ -57,7 +57,7 @@ The objective is to deliver a functional product on the App Store while showcasi
 
 - [x] MVP with habits, mindset, and reflection input
 - [x] Basic analytics (completion percentages, streaks)
-- [ ] Mood trend visualization
+- [x] Mood trend visualization
 - [ ] iCloud synchronization (optional)
 - [x] Release on the App Store
 
