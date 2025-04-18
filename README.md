@@ -1,74 +1,79 @@
-# Protocol — Daily Operations Tracker
+# Protocol — Tactical Daily Operations Tracker
 
-**Protocol** is a minimal, tactical iOS app for high-performance daily tracking.  
-It combines habit logging, mindset reflection, and prompt-based journaling into a single focused interface.
+**Protocol** is a minimalist iOS app designed for high-performance daily tracking.  
+It seamlessly integrates habit logging, mindset reflection, and prompt-based journaling into a unified interface.
 
-Designed for users who prioritize structure, discipline, and intentional reflection — without distractions or unnecessary features.
+Ideal for users who value structure, discipline, and intentional reflection without distractions.
 
 ---
 
 ## Features
 
 ### 🟢 Daily Habits
-- Custom habit list with emoji or SF Symbols
+- Customize your habit list with emojis or SF Symbols
 - Toggle daily completions
-- (Upcoming) Streaks and consistency stats
+- Streaks and consistency statistics
 
 ### 🧠 State Log
-- Choose an emoji to log your daily mindset (e.g. 🔥 🧊 🌫️ ⚡️)
-- Optional 1-line context note
-- (Upcoming) Mood trend graph over time
+- Select an emoji to represent your daily mindset (e.g., 🔥 🧊 🌫️ ⚡️)
+- Optionally add a one-line context note
+- Mood trend visualization over time (coming soon)
 
 ### 📜 Reflection Prompt
-- One rotating prompt per day from a 30-day bank
+- Receive a unique prompt each day from a 30-day rotating bank
 - Markdown-compatible input
 - All data stored locally using SwiftData
 
 ### 📊 Stats & Trends
-- Weekly completion percentage
-- Mood distribution or trendline
-- Reflection entry streaks
+- Weekly habit completion percentages
+- Mood distribution and trend analysis
+- Reflection entry streak tracking
 
 ---
 
 ## Tech Stack
 
-- **SwiftUI** for UI
-- **SwiftData** for local persistence
-- iOS **17.0+** (fully local, no backend)
-- Clean MVVM structure for clarity and modularity
+- **SwiftUI** for intuitive and responsive UI
+- **SwiftData** for efficient local data management
+- **MVVM Architecture** for clean code separation
+- iOS **17.0+** compatibility
+- Fully local operation with no backend dependencies
 
 ---
 
 ## Development Purpose
 
-Protocol is a self-contained portfolio project designed to demonstrate:
-- Modern SwiftUI app structure
-- Local data management (SwiftData)
-- Minimal, focused UX design
-- Clean separation of logic (MVVM)
+Protocol serves as a portfolio project to demonstrate:
+- Modern SwiftUI application structure
+- Effective local data handling with SwiftData
+- Focused and user-centric UX design
+- Clean separation of logic using MVVM
 
-The goal is to ship a real product to the App Store while showcasing practical skills for freelance opportunities.
+The objective is to deliver a functional product on the App Store while showcasing practical skills for potential freelance opportunities.
 
 ---
 
 ## Roadmap
 
 - [x] MVP with habits, mindset, and reflection input
-- [x] Basic analytics (completion %, streaks)
-- [ ] iCloud sync (optional future)
-- [x] App Store release
+- [x] Basic analytics (completion percentages, streaks)
+- [ ] Mood trend visualization
+- [ ] iCloud synchronization (optional)
+- [x] Release on the App Store
+
+📲 Available on the App Store:  
+**[Protocol — Daily Ops](https://apps.apple.com/uz/app/protocol-daily-ops/id6744578703)**
 
 ---
 
 ## License
 
-MIT License. Open to contributions and feedback.
+MIT License. Contributions and feedback are welcome.
 
 ---
 
 ## Author
 
 **Kamol Madaminov**  
-iOS Developer — Swift, SwiftUI, Systems & UI/UX Focused  
+iOS Developer — Specializing in Swift, SwiftUI, Systems, and UI/UX  
 GitHub: [@kamolMadaminov](https://github.com/kamolMadaminov)
