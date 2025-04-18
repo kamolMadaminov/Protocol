@@ -50,8 +50,8 @@ struct OnboardingContainerView: View {
                 .tint(Color(hex: "#4EC5A7")) // Teal Green
                 .controlSize(.large)
                 .padding(.bottom, 50)
-                .transition(.opacity.combined(with: .scale)) // Add transition for the button itself
-            } else { // Not the last page
+                .transition(.opacity.combined(with: .scale))
+            } else {
                 Button("Next") {
                     withAnimation { // Animate the tab change
                         currentTab += 1
@@ -61,10 +61,8 @@ struct OnboardingContainerView: View {
                 .tint(Color(hex: "#30D0A0")) // Emerald Green
                 .controlSize(.large)
                 .padding(.bottom, 50)
-                .transition(.opacity.combined(with: .scale)) // Add transition for the button itself
+                .transition(.opacity.combined(with: .scale))
             }
-            // Ensure the button has consistent height space even when transitioning
-//            .frame(height: 50 + 50) // Approximate height of button + padding
         }
         .background().ignoresSafeArea()
     }
@@ -102,9 +100,7 @@ struct OnboardingPageView: View {
                 .lineSpacing(5)
 
             Spacer()
-            // Button removed from here
         }
-        // Removed padding(.vertical) as spacing is handled by Spacers and button padding in container
     }
 }
 
