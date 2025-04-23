@@ -239,11 +239,13 @@ struct TodayView: View {
                 }
             }
             .sheet(item: $habitToEditInSheet) { habitToEdit in
-                // Pass the non-optional habit to the view
-                NavigationStack { // AddEditHabitView needs its own NavStack for toolbar items
+                NavigationStack {
                     AddEditHabitView(habitToEdit: habitToEdit)
-                    // Pass the environment if AddEditHabitView needs the main context
-                    // .environment(\.modelContext, modelContext) // Might not be needed if AddEditHabitView gets it anyway
+                }
+            }
+            .sheet(isPresented: $showingAddHabitSheet) {
+                NavigationStack {
+                    AddEditHabitView()
                 }
             }
             .task(id: habitsFromQuery) {

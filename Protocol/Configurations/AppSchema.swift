@@ -37,12 +37,13 @@ enum AppSchemaV1: VersionedSchema {
 
 // --- Version 2 Schema (Your current version with usedStreakFreeze) ---
 typealias DailyLogV2 = DailyLog // Use your current DailyLog class
+typealias HabitV2 = Habit
 
 enum AppSchemaV2: VersionedSchema {
     static var versionIdentifier = Schema.Version(2, 0, 0) // Increment the version
 
     static var models: [any PersistentModel.Type] {
-        [DailyLogV2.self, Habit.self] // Your current models
+        [DailyLogV2.self, HabitV2.self] // Your current models
     }
 }
 

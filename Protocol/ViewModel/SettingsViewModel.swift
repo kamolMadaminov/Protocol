@@ -17,6 +17,10 @@ class SettingsViewModel {
     var isExporting: Bool = false
 
     private let modelContext: ModelContext
+    
+    var generalReminderEnabled: Bool = false // Load/Save this using AppStorage or UserDefaults
+    var generalReminderTime: Date = Calendar.current.date(bySettingHour: 9, minute: 0, second: 0, of: Date())! // Default time
+    var notificationPermissionGranted: Bool = false // Track status
 
     // Inject ModelContext on initialization
     init(modelContext: ModelContext) {
