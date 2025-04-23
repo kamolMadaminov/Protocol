@@ -35,6 +35,7 @@ struct TodayView: View {
     @State private var showingDeleteConfirmAlert = false
     
     @State private var showingAddHabitSheet = false
+    @State private var habitToEditInSheet: Habit? = nil
     
     private enum FocusableField: Hashable {
         case note
@@ -75,122 +76,130 @@ struct TodayView: View {
                                                         viewModel.saveLog()
                                                     }
                                                     .sensoryFeedback(.success, trigger: isCompleted && hapticsEnabled)
-                                            
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                Text(habit.name)
-                                                    .font(.body)
-                                                    .foregroundColor(.primary)
-                                                if let description = habit.habitDescription, !description.isEmpty {
-                                                    Text(description)
-                                                        .font(.caption)
-                                                        .foregroundColor(.secondary)
+                                                
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(habit.name)
+                                                        .font(.body)
+                                                        .foregroundColor(.primary)
+                                                    if let description = habit.habitDescription, !description.isEmpty {
+                                                        Text(description)
+                                                            .font(.caption)
+                                                            .foregroundColor(.secondary)
+                                                    }
+                                                }
+                                                .padding(.vertical, 8)
+                                                
+                                                Spacer()
+                                            }
+                                            .contentShape(Rectangle())
+                                            .contextMenu {
+                                                // Your Button code goes here...
+                                                Button {
+                                                    self.habitToEditInSheet = habit
+                                                } label: {
+                                                    Label("Edit Habit", systemImage: "pencil")
                                                 }
                                             }
-                                            .padding(.vertical, 8)
                                             
-                                            Spacer()
+                                            Divider().padding(.leading, 40)
                                         }
-                                        .contentShape(Rectangle())
-                                        
-                                        Divider().padding(.leading, 40)
                                     }
                                 }
                             }
-                        }
-                        .cardStyle()
-                        // --- State Log Section ---
-                        VStack(alignment: .leading, spacing: 16) {
-                            Label("State Log", systemImage: "brain.head.profile")
-                                .font(.title2.bold())
-                                .foregroundStyle(.secondary)
-                            
-                            // Mood Picker Sub-section
-                            VStack(alignment: .leading) {
-                                Text("Mood – \(viewModel.moodDescription(for: viewModel.mood))")
-                                    .font(.headline)
-
+                            .cardStyle()
+                            // --- State Log Section ---
+                            VStack(alignment: .leading, spacing: 16) {
+                                Label("State Log", systemImage: "brain.head.profile")
+                                    .font(.title2.bold())
+                                    .foregroundStyle(.secondary)
                                 
-                                let moodPicker = Picker("Mood", selection: Binding(
-                                    get: { viewModel.mood },
-                                    set: { viewModel.mood = $0; viewModel.saveLog() }
-                                )) {
-                                    Text("🥀").tag("🥀")
-                                    Text("😮‍💨").tag("😮‍💨")
-                                    Text("🙂").tag("🙂")
-                                    Text("💪").tag("💪")
-                                    Text("🚀").tag("🚀")
+                                // Mood Picker Sub-section
+                                VStack(alignment: .leading) {
+                                    Text("Mood – \(viewModel.moodDescription(for: viewModel.mood))")
+                                        .font(.headline)
+                                    
+                                    
+                                    let moodPicker = Picker("Mood", selection: Binding(
+                                        get: { viewModel.mood },
+                                        set: { viewModel.mood = $0; viewModel.saveLog() }
+                                    )) {
+                                        Text("🥀").tag("🥀")
+                                        Text("😮‍💨").tag("😮‍💨")
+                                        Text("🙂").tag("🙂")
+                                        Text("💪").tag("💪")
+                                        Text("🚀").tag("🚀")
+                                    }
+                                        .pickerStyle(.segmented)
+                                    if hapticsEnabled {
+                                        moodPicker
+                                            .sensoryFeedback(.selection, trigger: viewModel.mood)
+                                    } else {
+                                        moodPicker
+                                    }
                                 }
-                                    .pickerStyle(.segmented)
-                                if hapticsEnabled {
-                                    moodPicker
-                                        .sensoryFeedback(.selection, trigger: viewModel.mood)
-                                } else {
-                                    moodPicker
+                                
+                                // Note Sub-section
+                                VStack(alignment: .leading) {
+                                    Text("Note")
+                                        .font(.headline)
+                                    TextField("Add a brief note (optional)...", text: Binding(
+                                        get: { viewModel.note },
+                                        set: { viewModel.note = $0 }
+                                    ), onCommit: {
+                                        viewModel.saveLog()
+                                    })
+                                    .textFieldStyle(.plain)
+                                    .padding(8)
+                                    .background(.background)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    .focused($focusedField, equals: .note)
+                                    .textFieldStyle(.roundedBorder)
+                                    .focused($focusedField, equals: .note)
                                 }
                             }
-                            
-                            // Note Sub-section
-                            VStack(alignment: .leading) {
-                                Text("Note")
-                                    .font(.headline)
-                                TextField("Add a brief note (optional)...", text: Binding(
-                                    get: { viewModel.note },
-                                    set: { viewModel.note = $0 }
-                                ), onCommit: {
-                                    viewModel.saveLog()
-                                })
+                            .cardStyle()
+                            // --- Reflection Section ---
+                            VStack(alignment: .leading, spacing: 12) {
+                                Label("Reflection", systemImage: "text.bubble")
+                                    .font(.title2.bold())
+                                    .foregroundStyle(.secondary)
+                                
+                                // Reflection Prompt Sub-section
+                                VStack(alignment: .leading) {
+                                    Text("Prompt:")
+                                        .font(.headline)
+                                    Text("“Did your actions match your mission?”")
+                                        .padding(.bottom, 4)
+                                }
+                                
+                                TextField("Write your reflection...", text: Binding(
+                                    get: { viewModel.reflection },
+                                    set: { viewModel.reflection = $0 }
+                                ), axis: .vertical)
                                 .textFieldStyle(.plain)
                                 .padding(8)
                                 .background(.background)
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
-                                .focused($focusedField, equals: .note)
-                                .textFieldStyle(.roundedBorder)
-                                .focused($focusedField, equals: .note)
-                            }
-                        }
-                        .cardStyle()
-                        // --- Reflection Section ---
-                        VStack(alignment: .leading, spacing: 12) {
-                            Label("Reflection", systemImage: "text.bubble")
-                                .font(.title2.bold())
-                                .foregroundStyle(.secondary)
-                            
-                            // Reflection Prompt Sub-section
-                            VStack(alignment: .leading) {
-                                Text("Prompt:")
-                                    .font(.headline)
-                                Text("“Did your actions match your mission?”")
-                                    .padding(.bottom, 4)
-                            }
-                            
-                            TextField("Write your reflection...", text: Binding(
-                                get: { viewModel.reflection },
-                                set: { viewModel.reflection = $0 }
-                            ), axis: .vertical)
-                            .textFieldStyle(.plain)
-                            .padding(8)
-                            .background(.background)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .lineLimit(5...10)
-                            .onSubmit { viewModel.saveLog() }
-                            .focused($focusedField, equals: .reflection)
-                            .onChange(of: focusedField) { newFocus in
-                                if newFocus != .reflection {
-                                    viewModel.saveLog()
+                                .lineLimit(5...10)
+                                .onSubmit { viewModel.saveLog() }
+                                .focused($focusedField, equals: .reflection)
+                                .onChange(of: focusedField) { newFocus in
+                                    if newFocus != .reflection {
+                                        viewModel.saveLog()
+                                    }
                                 }
+                                
                             }
-
+                            .cardStyle()
                         }
-                        .cardStyle()
+                        .padding(.horizontal)
+                        .padding(.vertical)
+                        .background(Color(uiColor: .systemGroupedBackground))
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            focusedField = nil
+                        }
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical)
-                    .background(Color(uiColor: .systemGroupedBackground))
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        focusedField = nil
-                    }
-                }
                     .alert("Clear Today's Log?", isPresented: $showingDeleteConfirmAlert) {
                         Button("Clear Data", role: .destructive) {
                             viewModel.deleteTodaysLog()
@@ -219,30 +228,33 @@ struct TodayView: View {
                             }
                         }
                     }
-                
-            } else {
-                ProgressView("Loading Protocol...")
-                    .onAppear {
-                        if self.viewModel == nil {
-                            self.viewModel = TodayViewModel(context: modelContext)
+                    
+                } else {
+                    ProgressView("Loading Protocol...")
+                        .onAppear {
+                            if self.viewModel == nil {
+                                self.viewModel = TodayViewModel(context: modelContext)
+                            }
                         }
-                    }
+                }
             }
-        }
-        .sheet(isPresented: $showingAddHabitSheet) {
-            NavigationStack {
-                AddEditHabitView(habitToEdit: nil)
+            .sheet(item: $habitToEditInSheet) { habitToEdit in
+                // Pass the non-optional habit to the view
+                NavigationStack { // AddEditHabitView needs its own NavStack for toolbar items
+                    AddEditHabitView(habitToEdit: habitToEdit)
+                    // Pass the environment if AddEditHabitView needs the main context
+                    // .environment(\.modelContext, modelContext) // Might not be needed if AddEditHabitView gets it anyway
+                }
             }
-        }
-        .task(id: habitsFromQuery) {
-            if viewModel == nil {
-                viewModel = TodayViewModel(context: modelContext, initialHabits: habitsFromQuery)
-            } else {
-                viewModel?.updateHabits(habitsFromQuery)
+            .task(id: habitsFromQuery) {
+                if viewModel == nil {
+                    viewModel = TodayViewModel(context: modelContext, initialHabits: habitsFromQuery)
+                } else {
+                    viewModel?.updateHabits(habitsFromQuery)
+                }
             }
         }
     }
-}
 }
 
 extension View {
