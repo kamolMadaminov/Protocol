@@ -14,36 +14,37 @@ struct ProtocolApp: App {
     let sharedModelContainer: ModelContainer
     
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
-
+    
     init() {
-        // Initialize the container first
-        let schema = Schema([DailyLog.self, Habit.self])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
-            sharedModelContainer = try ModelContainer(for: schema, configurations: [modelConfiguration])
-            print("ModelContainer created successfully.") // Debug print
+            
+            let latestSchema = Schema(AppSchemaV2.models)
+            sharedModelContainer = try ModelContainer(
+                for: latestSchema, // Pass the Schema OBJECT here
+                migrationPlan: MigrationPlan.self // Pass your migration plan type here
+            )
+            print("ModelContainer created successfully using MigrationPlan.")
             
             // --- Trigger Data Retention Check ---
-            // This runs the check in the background via Task.detached within the manager
-             print("Triggering data retention check...") // Debug print
+            print("Triggering data retention check...")
             DataRetentionManager.performCleanup(container: sharedModelContainer)
             // --- End Trigger ---
             
         } catch {
-             fatalError("Could not create ModelContainer: \(error)")
+            fatalError("Could not create ModelContainer with MigrationPlan: \(error)")
         }
     }
     
     var body: some Scene {
         WindowGroup {
-                    if hasCompletedOnboarding {
-                        ContentView()
-                    } else {
-                        OnboardingContainerView(onComplete: {
-                            hasCompletedOnboarding = true
-                        })
-                    }
-                }
-                .modelContainer(sharedModelContainer)
+            if hasCompletedOnboarding {
+                ContentView()
+            } else {
+                OnboardingContainerView(onComplete: {
+                    hasCompletedOnboarding = true
+                })
+            }
+        }
+        .modelContainer(sharedModelContainer)
     }
 }

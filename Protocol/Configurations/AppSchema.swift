@@ -1,0 +1,97 @@
+//
+//  AppSchema.swift
+//  Protocol
+//
+//  Created by Kamol Madaminov on 23/04/25.
+//
+
+import SwiftData
+import Foundation
+
+// --- Version 1 Schema (Before adding usedStreakFreeze) ---
+enum AppSchemaV1: VersionedSchema {
+    static var versionIdentifier = Schema.Version(1, 0, 0)
+
+    static var models: [any PersistentModel.Type] {
+        [DailyLogV1.self, Habit.self] // Include all models used in this version
+    }
+
+    @Model
+    final class DailyLogV1 {
+        @Attribute(.unique) var date: String
+        var habits: [String: Bool]
+        var mood: String
+        var note: String
+        var reflection: String
+
+        init(date: String, habits: [String: Bool], mood: String, note: String, reflection: String) {
+            self.date = date
+            self.habits = habits
+            self.mood = mood
+            self.note = note
+            self.reflection = reflection
+        }
+    }
+}
+
+// --- Version 2 Schema (Your current version with usedStreakFreeze) ---
+typealias DailyLogV2 = DailyLog // Use your current DailyLog class
+
+enum AppSchemaV2: VersionedSchema {
+    static var versionIdentifier = Schema.Version(2, 0, 0) // Increment the version
+
+    static var models: [any PersistentModel.Type] {
+        [DailyLogV2.self, Habit.self] // Your current models
+    }
+}
+
+// --- Define the Migration Plan ---
+enum MigrationPlan: SchemaMigrationPlan {
+    static var schemas: [any VersionedSchema.Type] {
+        [AppSchemaV1.self, AppSchemaV2.self] // List all versions
+    }
+
+    // Define how to migrate between versions
+    static var stages: [MigrationStage] {
+        [
+            migrateV1toV2 // Add more stages for future migrations
+        ]
+    }
+
+    // --- Migration Stages ---
+
+    // Migration from V1 to V2
+    static let migrateV1toV2 = MigrationStage.lightweight(
+        fromVersion: AppSchemaV1.self,
+        toVersion: AppSchemaV2.self
+    )
+
+    // --- Example of a Custom Migration Stage (if lightweight isn't enough) ---
+    // static let migrateV1toV2Custom = MigrationStage.custom(
+    //     fromVersion: AppSchemaV1.self,
+    //     toVersion: AppSchemaV2.self,
+    //     willMigrate: { context in
+    //         // Code to run before migration (optional)
+    //         print("Will migrate from V1 to V2")
+    //     },
+    //     didMigrate: { context in
+    //         // Code to run AFTER migration
+    //         // Here you explicitly set the default value for the new field
+    //         // for all existing objects.
+    //         print("Did migrate from V1 to V2. Setting default usedStreakFreeze.")
+    //         let logs = try context.fetch(FetchDescriptor<DailyLogV2>())
+    //         logs.forEach { log in
+    //             // Since usedStreakFreeze didn't exist, we assume it was false.
+    //             // NOTE: Because your 'DailyLog' init ALREADY has a default value,
+    //             // lightweight migration *should* handle this automatically by
+    //             // using that default when adding the column. Custom migration
+    //             // is usually needed for more complex transformations (renaming,
+    //             // changing types, calculating new values).
+    //             // If lightweight fails, uncomment and adapt this custom logic.
+    //             // log.usedStreakFreeze = false // Set default if needed
+    //         }
+    //         try context.save()
+    //         print("Default usedStreakFreeze set.")
+    //     }
+    // )
+}

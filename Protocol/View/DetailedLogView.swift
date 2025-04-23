@@ -10,11 +10,11 @@ import SwiftData
 
 struct DetailedLogView: View {
     let log: DailyLog
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 25) {
-
+                
                 // --- Date Title with Mood Emoji ---
                 HStack {
                     // Combine emoji and date
@@ -23,7 +23,7 @@ struct DetailedLogView: View {
                         .fontWeight(.bold)
                 }
                 .padding(.bottom)
-
+                
                 // --- Habits Section ---
                 VStack(alignment: .leading, spacing: 10) {
                     Label("Habits", systemImage: "list.bullet.clipboard")
@@ -31,12 +31,12 @@ struct DetailedLogView: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 5)
-
+                    
                     Divider()
-
+                    
                     if log.habits.isEmpty {
                         Text("No habits logged for this day.")
-                             .foregroundColor(.secondary)
+                            .foregroundColor(.secondary)
                     } else {
                         ForEach(log.habits.sorted(by: { $0.key < $1.key }), id: \.key) { habitName, completed in
                             HStack {
@@ -50,7 +50,7 @@ struct DetailedLogView: View {
                         }
                     }
                 }
-
+                
                 // --- Note Section ---
                 if !log.note.isEmpty {
                     VStack(alignment: .leading, spacing: 10) {
@@ -59,15 +59,15 @@ struct DetailedLogView: View {
                             .fontWeight(.semibold)
                             .foregroundStyle(.secondary)
                             .padding(.bottom, 5)
-
+                        
                         Divider()
-
+                        
                         Text(log.note)
                             .font(.body)
                             .multilineTextAlignment(.leading)
                     }
                 }
-
+                
                 // --- Reflection Section ---
                 if !log.reflection.isEmpty {
                     VStack(alignment: .leading, spacing: 10) {
@@ -76,15 +76,26 @@ struct DetailedLogView: View {
                             .fontWeight(.semibold)
                             .foregroundStyle(.secondary)
                             .padding(.bottom, 5)
-
+                        
                         Divider()
-
+                        
                         Text(log.reflection)
                             .font(.body)
                             .multilineTextAlignment(.leading)
                     }
                 }
-
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("Streak Status", systemImage: "snowflake")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 5)
+                    Divider()
+                    Text(log.usedStreakFreeze ? "Streak freeze applied for this day." : "No streak freeze applied.")
+                        .font(.body)
+                }
+                
                 Spacer()
             }
             .padding()
@@ -92,16 +103,16 @@ struct DetailedLogView: View {
         .navigationTitle("Log Details")
         .navigationBarTitleDisplayMode(.inline)
     }
-
+    
     // Helper function to format the date string (same as in LogsView)
     private func formattedDate(_ dateString: String) -> String {
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd" // Current format
-
+        
         let outputFormatter = DateFormatter()
         outputFormatter.dateStyle = .full
         outputFormatter.timeStyle = .none
-
+        
         if let date = inputFormatter.date(from: dateString) {
             return outputFormatter.string(from: date)
         } else {
@@ -116,10 +127,11 @@ struct DetailedLogView: View {
         habits: ["Workout": true, "Read": true, "Meditate": false],
         mood: "⚡️",
         note: "A productive day overall.",
-        reflection: "Felt aligned with my goals, although meditation was skipped."
+        reflection: "Felt aligned with my goals, although meditation was skipped.",
+        usedStreakFreeze: false
     )
-
+    
     return NavigationStack {
-         DetailedLogView(log: sampleLog)
+        DetailedLogView(log: sampleLog)
     }
 }

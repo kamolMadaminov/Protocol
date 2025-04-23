@@ -8,7 +8,6 @@
 import Foundation
 import SwiftData
 
-// --- DTOs for Codable Conformance ---
 // Simple struct to hold log data for export
 struct ExportableDailyLog: Codable {
     let date: String
@@ -16,13 +15,14 @@ struct ExportableDailyLog: Codable {
     let mood: String
     let note: String
     let reflection: String
+    let usedStreakFreeze: Bool
 }
 
 // Simple struct to hold habit data for export (optional, but good context)
 struct ExportableHabit: Codable {
     let name: String
     let habitDescription: String?
-    let creationDate: Date // Use Date directly, let JSONEncoder handle formatting
+    let creationDate: Date
 }
 
 // Top-level structure for the exported JSON file
@@ -31,25 +31,24 @@ struct ExportData: Codable {
     let habits: [ExportableHabit]
     let logs: [ExportableDailyLog]
 }
-// --- End DTOs ---
 
 
 class DataExportManager {
-
+    
     private let modelContext: ModelContext
-
+    
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
-
+    
     func exportToJSON() throws -> URL {
         // 1. Fetch Data
         let logDescriptor = FetchDescriptor<DailyLog>(sortBy: [SortDescriptor(\.date)])
         let habitDescriptor = FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.creationDate)])
-
+        
         let logs = try modelContext.fetch(logDescriptor)
         let habits = try modelContext.fetch(habitDescriptor)
-
+        
         // 2. Convert to Exportable DTOs
         let exportableLogs = logs.map { log in
             ExportableDailyLog(
@@ -57,10 +56,11 @@ class DataExportManager {
                 habits: log.habits,
                 mood: log.mood,
                 note: log.note,
-                reflection: log.reflection
+                reflection: log.reflection,
+                usedStreakFreeze: log.usedStreakFreeze
             )
         }
-
+        
         let exportableHabits = habits.map { habit in
             ExportableHabit(
                 name: habit.name,
@@ -75,21 +75,21 @@ class DataExportManager {
             habits: exportableHabits,
             logs: exportableLogs
         )
-
+        
         // 4. Encode to JSON
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys] // Make it readable
         encoder.dateEncodingStrategy = .iso8601 // Standard date format
         let jsonData = try encoder.encode(exportData)
-
+        
         // 5. Get Temporary File URL
         let tempDir = FileManager.default.temporaryDirectory
         let fileName = "protocol_export_\(Date().formatted(.iso8601.year().month().day())).json"
         let fileURL = tempDir.appendingPathComponent(fileName)
-
+        
         // 6. Write JSON Data to File
         try jsonData.write(to: fileURL, options: .atomic)
-
+        
         print("Export successful. File saved to: \(fileURL.path)")
         return fileURL
     }

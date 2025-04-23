@@ -15,12 +15,14 @@ class DailyLog {
     var mood: String
     var note: String
     var reflection: String
+    var usedStreakFreeze: Bool
 
-    init(date: String, habits: [String: Bool], mood: String, note: String, reflection: String) {
+    init(date: String, habits: [String: Bool], mood: String, note: String, reflection: String, usedStreakFreeze: Bool = false) {
         self.date = date
         self.habits = habits
         self.mood = mood
         self.note = note
         self.reflection = reflection
+        self.usedStreakFreeze = usedStreakFreeze
     }
 }

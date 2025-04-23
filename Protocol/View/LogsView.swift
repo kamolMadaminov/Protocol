@@ -24,6 +24,112 @@ struct LogsView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack {
+                            Text("Consistency Score")
+                                .font(.title2).bold()
+                            Spacer()
+                            Text(consistencyEmoji(score: viewModel.overallConsistencyScore))
+                                .font(.title)
+                        }
+                        
+                        Text("Overall consistency based on weekly habit completion.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        HStack {
+                            ProgressView(value: viewModel.overallConsistencyScore, total: 100.0) {
+                            } currentValueLabel: {
+                                Text("\(viewModel.overallConsistencyScore, specifier: "%.0f")%")
+                                    .font(.system(.title3, design: .rounded).bold())
+                            }
+                            .progressViewStyle(.linear)
+                        }
+                        .padding(.top, 5)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Streaks").font(.headline)
+                            HStack {
+                                Label("Longest Overall:", systemImage: "flame.fill")
+                                Spacer()
+                                Text("\(viewModel.overallLongestStreak) \(viewModel.overallLongestStreak == 1 ? "day" : "days")")
+                            }
+                            .foregroundColor(.orange)
+                            
+                            HStack {
+                                Label("Streak Freeze:", systemImage: "snowflake")
+                                Spacer()
+                                Text("Not Implemented")
+                            }
+                            .foregroundColor(.gray)
+                        }
+                        .font(.subheadline)
+                        .padding(.top, 10)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Visualizations").font(.headline)
+                            
+                            HStack {
+                                Text("Weekly Trend:")
+                                Spacer()
+                                Text(consistencyEmoji(score: viewModel.overallConsistencyScore))
+                            }
+                            
+                            if !viewModel.weeklyCompletionGraphData.isEmpty {
+                                Chart(viewModel.weeklyCompletionGraphData) { dataPoint in
+                                    LineMark(
+                                        x: .value("Date", dataPoint.date, unit: .day),
+                                        y: .value("Completion", dataPoint.completionPercentage)
+                                    )
+                                    .interpolationMethod(.catmullRom) // Makes the line smoother
+                                    .symbol(Circle().strokeBorder(lineWidth: 1)) // Add points
+                                    
+                                    // Optional: Add area below line
+                                    
+                                    AreaMark(
+                                        x: .value("Date", dataPoint.date, unit: .day),
+                                        y: .value("Completion", dataPoint.completionPercentage)
+                                    )
+                                    .interpolationMethod(.catmullRom)
+                                    .foregroundStyle(LinearGradient(gradient: Gradient(colors: [Color.accentColor.opacity(0.4), Color.accentColor.opacity(0.0)]), startPoint: .top, endPoint: .bottom))
+                                    
+                                }
+                                .frame(height: 100)
+                                .chartYScale(domain: 0...100) // Ensure Y axis is 0-100%
+                                .chartXAxis {
+                                    AxisMarks(values: .stride(by: .day)) { value in
+                                        // Show Day Initials e.g. M, T, W
+                                        AxisGridLine()
+                                        AxisValueLabel(format: .dateTime.weekday(.narrow), centered: true)
+                                    }
+                                }
+                                .chartYAxis {
+                                    AxisMarks(preset: .extended, position: .leading) { value in
+                                        AxisGridLine()
+                                        AxisValueLabel {
+                                            if let intValue = value.as(Int.self) {
+                                                Text("\(intValue)%")
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.top, 5)
+                            } else {
+                                Text("Calculating graph data...")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .frame(height: 100)
+                            }
+                        }
+                        .font(.subheadline)
+                        .padding(.top, 10)
+                    }
+                    .padding(.vertical, 5)
+                } header: {
+                    
+                }
+                
                 // --- Trends Section ---
                 Section("Habit Trends") {
                     if habits.isEmpty {
@@ -138,12 +244,20 @@ struct LogsView: View {
                 }
             }
             .navigationTitle("Logs & Trends")
-            .task(id: "\(habits.count)-\(logs.count)") {
-                print("LogsView .task triggered.")
-                viewModel.updateData(habits: habits, logs: logs)
+            .onChange(of: habits) { _, newHabits in
+                print("Habits changed, triggering update...")
+                viewModel.updateData(habits: newHabits, logs: logs)
             }
+            .onChange(of: logs) { _, newLogs in
+                // This is crucial for detecting changes *within* logs
+                // Note: This might trigger even if only metadata changes,
+                // but it's more reliable than just count.
+                print("Logs changed, triggering update...")
+                viewModel.updateData(habits: habits, logs: newLogs)
+            }
+            // Optional: Trigger initial load if needed (though .onChange might cover it)
             .onAppear {
-                print("LogsView appeared.")
+                print("LogsView appeared, triggering initial update...")
                 viewModel.updateData(habits: habits, logs: logs)
             }
         }
@@ -151,7 +265,6 @@ struct LogsView: View {
     
     // Helper function to format the date string
     private func formattedDate(_ dateString: String) -> String {
-        // ... (your existing implementation)
         let inputFormatter = DateFormatter()
         inputFormatter.dateFormat = "yyyy-MM-dd"
         let outputFormatter = DateFormatter()
@@ -168,6 +281,17 @@ struct LogsView: View {
     private func deleteLogs(offsets: IndexSet) {
         withAnimation {
             offsets.map { logs[$0] }.forEach(modelContext.delete)
+        }
+    }
+    
+    // Function for defining consistencyEmoji
+    private func consistencyEmoji(score: Double) -> String {
+        switch score {
+        case 90...100: return "🔥🔥🔥"
+        case 75..<90: return "🔥🔥"
+        case 50..<75: return "🔥"
+        case 25..<50: return "📉"
+        default: return "💀"
         }
     }
 }

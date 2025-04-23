@@ -5,8 +5,6 @@
 //  Created by Kamol Madaminov on 11/04/25.
 //
 
-// TodayViewModel.swift
-
 import Foundation
 import SwiftData
 import SwiftUI
@@ -20,6 +18,7 @@ class TodayViewModel {
     var mood: String = "🙂"
     var note: String = ""
     var reflection: String = ""
+    var usedStreakFreeze: Bool = false
     
     private var currentHabits: [Habit] = []
     
@@ -51,6 +50,7 @@ class TodayViewModel {
         self.note = ""
         self.reflection = ""
         self.log = nil
+        self.usedStreakFreeze = false
         
         do {
             if let result = try context.fetch(descriptor).first {
@@ -58,6 +58,7 @@ class TodayViewModel {
                 self.mood = result.mood
                 self.note = result.note
                 self.reflection = result.reflection
+                self.usedStreakFreeze = result.usedStreakFreeze
                 
                 var updatedHabits = self.habits // Start with current defaults (all false)
 
@@ -76,6 +77,7 @@ class TodayViewModel {
              self.mood = "🙂"
              self.note = ""
              self.reflection = ""
+             self.usedStreakFreeze = false
              self.log = nil
         }
     }
@@ -88,7 +90,7 @@ class TodayViewModel {
          }
 
         if log == nil {
-            log = DailyLog(date: todayDate, habits: habitsToSave, mood: mood, note: note, reflection: reflection)
+            log = DailyLog(date: todayDate, habits: habitsToSave, mood: mood, note: note, reflection: reflection, usedStreakFreeze: usedStreakFreeze)
             if let newLog = log {
                 context.insert(newLog)
             }
@@ -97,6 +99,7 @@ class TodayViewModel {
             log?.mood = mood
             log?.note = note
             log?.reflection = reflection
+            log?.usedStreakFreeze = usedStreakFreeze
         }
         
         do {

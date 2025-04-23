@@ -20,6 +20,13 @@ struct MoodFrequency: Identifiable {
 struct HabitTrendData {
     var weeklyCompletionPercentage: Double = 0.0
     var currentStreak: Int = 0
+    var longestStreak: Int = 0
+}
+
+struct DailyCompletionStat: Identifiable {
+    let id = UUID()
+    let date: Date
+    let completionPercentage: Double
 }
 
 @Observable
@@ -27,6 +34,11 @@ class LogsViewModel {
     // Store calculated data: Key is Habit's PersistentIdentifier for stability
     var trendData: [PersistentIdentifier: HabitTrendData] = [:]
     var moodChartData: [MoodFrequency] = []
+    var weeklyCompletionGraphData: [DailyCompletionStat] = []
+    
+    // Overall consistency and streaks
+    var overallConsistencyScore: Double = 0.0
+    var overallLongestStreak: Int = 0
     
     // Store processed logs for easier lookup (Date: Log)
     private var logDict: [Date: DailyLog] = [:]
@@ -45,9 +57,7 @@ class LogsViewModel {
     // Calendar for date calculations
     private let calendar = Calendar.current
     
-    init() {
-        print("LogsViewModel Initialized")
-    }
+    init() {}
     
     // Main function called by the View when data is available/updated
     func updateData(habits: [Habit], logs: [DailyLog]) {
@@ -68,28 +78,51 @@ class LogsViewModel {
         })
         
         // Recalculate all trends
-        calculateAllTrends()
+        calculateAllMetrics()
         
         // Calculate Mood Chart Data for the last 7 days
         calculateMoodChartData(forPastDays: 7)
+        
+        // Draw Weekly Completion graph for the last 7 days
+        calculateWeeklyCompletionGraphData(forPastDays: 7)
     }
     
-    private func calculateAllTrends() {
+    private func calculateAllMetrics() {
         var newTrendData: [PersistentIdentifier: HabitTrendData] = [:]
         let today = calendar.startOfDay(for: Date()) // Use start of today
+        var totalWeeklyCompletionSum: Double = 0.0
+        var longestStreakAcrossHabits = 0
         
         for habit in allHabits {
             let weeklyPercentage = calculateWeeklyCompletion(for: habit, today: today)
             let streak = calculateCurrentStreak(for: habit, today: today)
+            let longest = calculateLongestStreak(for: habit) // Calculate longest streak
+            
             newTrendData[habit.persistentModelID] = HabitTrendData(
                 weeklyCompletionPercentage: weeklyPercentage,
-                currentStreak: streak
+                currentStreak: streak,
+                longestStreak: longest // Store longest streak
             )
+            totalWeeklyCompletionSum += weeklyPercentage
+            if longest > longestStreakAcrossHabits {
+                longestStreakAcrossHabits = longest
+            }
         }
         
-        // Update the published property
+        // Update the published properties
         self.trendData = newTrendData
+        self.overallLongestStreak = longestStreakAcrossHabits
+        
+        // Calculate overall consistency score (simple average for now)
+        if !allHabits.isEmpty {
+            self.overallConsistencyScore = totalWeeklyCompletionSum / Double(allHabits.count)
+        } else {
+            self.overallConsistencyScore = 0.0
+        }
+        
         print("Trends calculated: \(self.trendData)")
+        print("Overall Consistency Score: \(self.overallConsistencyScore)")
+        print("Overall Longest Streak: \(self.overallLongestStreak)")
     }
     
     // --- Weekly Completion Calculation ---
@@ -152,36 +185,122 @@ class LogsViewModel {
         return currentStreak
     }
     
-    private func calculateMoodChartData(forPastDays days: Int) {
-            let today = calendar.startOfDay(for: Date())
-            guard let startDate = calendar.date(byAdding: .day, value: -(days - 1), to: today) else {
-                self.moodChartData = []
-                return
-            }
-
-            print("Calculating mood chart data from \(startDate) to \(today)")
-
-            // Filter logs within the date range
-            let recentLogs = allLogsSorted.filter { log in
-                guard let logDate = dateFormatter.date(from: log.date) else { return false }
-                let logStartOfDay = calendar.startOfDay(for: logDate)
-                return logStartOfDay >= startDate && logStartOfDay <= today
-            }
-
-            // Tally mood counts
-            var moodCounts: [String: Int] = [:]
-            for log in recentLogs {
-                moodCounts[log.mood, default: 0] += 1
-            }
-            
-             print("- Mood counts for last \(days) days: \(moodCounts)")
-
-            // Convert to MoodFrequency array and sort for consistent chart order
-            // Sorting by mood emoji string provides a basic consistent order
-            self.moodChartData = moodCounts.map { mood, count in
-                MoodFrequency(mood: mood, count: count)
-            }.sorted { $0.mood < $1.mood }
-            
-             print("- Mood chart data prepared: \(self.moodChartData)")
+    // --- Longest Streak Calculation ---
+    private func calculateLongestStreak(for habit: Habit) -> Int {
+        var longestStreak = 0
+        var currentStreak = 0
+        let habitCreationDate = calendar.startOfDay(for: habit.creationDate)
+        
+        // Iterate through all sorted logs relevant to this habit's creation date
+        let relevantLogs = allLogsSorted.filter { log in
+            guard let logDate = dateFormatter.date(from: log.date) else { return false }
+            return calendar.startOfDay(for: logDate) >= habitCreationDate
         }
+        
+        var previousDate: Date? = nil
+        
+        for log in relevantLogs {
+            guard let logDate = dateFormatter.date(from: log.date) else { continue }
+            let currentDate = calendar.startOfDay(for: logDate)
+            
+            // Check for missed days between logs
+            if let prevDate = previousDate {
+                let daysBetween = calendar.dateComponents([.day], from: prevDate, to: currentDate).day ?? 0
+                if daysBetween > 1 {
+                    // Gap detected, reset current streak
+                    longestStreak = max(longestStreak, currentStreak)
+                    currentStreak = 0 // Reset streak
+                }
+            }
+            
+            
+            if log.habits[habit.name] == true {
+                currentStreak += 1
+            } else {
+                // Day logged but habit not completed
+                longestStreak = max(longestStreak, currentStreak)
+                currentStreak = 0 // Reset streak
+            }
+            previousDate = currentDate // Update previous date
+        }
+        
+        longestStreak = max(longestStreak, currentStreak)
+        
+        return longestStreak
+    }
+    
+    private func calculateMoodChartData(forPastDays days: Int) {
+        let today = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -(days - 1), to: today) else {
+            self.moodChartData = []
+            return
+        }
+        
+        print("Calculating mood chart data from \(startDate) to \(today)")
+        
+        // Filter logs within the date range
+        let recentLogs = allLogsSorted.filter { log in
+            guard let logDate = dateFormatter.date(from: log.date) else { return false }
+            let logStartOfDay = calendar.startOfDay(for: logDate)
+            return logStartOfDay >= startDate && logStartOfDay <= today
+        }
+        
+        // Tally mood counts
+        var moodCounts: [String: Int] = [:]
+        for log in recentLogs {
+            moodCounts[log.mood, default: 0] += 1
+        }
+        
+        print("- Mood counts for last \(days) days: \(moodCounts)")
+        
+        // Sorting by mood emoji string provides a basic consistent order
+        self.moodChartData = moodCounts.map { mood, count in
+            MoodFrequency(mood: mood, count: count)
+        }.sorted { $0.mood < $1.mood }
+        
+        print("- Mood chart data prepared: \(self.moodChartData)")
+    }
+    
+    
+    // calculateWeeklyCompletionGraphData graph drawing function
+    private func calculateWeeklyCompletionGraphData(forPastDays days: Int) {
+        var graphData: [DailyCompletionStat] = []
+        let today = calendar.startOfDay(for: Date())
+        
+        print("--- Calculating Weekly Completion Graph (for \(days) days ending \(today)) ---")
+        
+        for dayOffset in (0..<days).reversed() {
+            guard let currentDate = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            
+            let activeHabits = allHabits.filter { habit in
+                let habitStartOfDay = calendar.startOfDay(for: habit.creationDate)
+                return habitStartOfDay <= currentDate
+            }
+            
+            guard !activeHabits.isEmpty else {
+                print("  No active habits on this date. Appending 0%.")
+                graphData.append(DailyCompletionStat(date: currentDate, completionPercentage: 0))
+                continue
+            }
+            
+            var completedCount = 0
+            let log = logDict[currentDate]
+            
+            if let log = log {
+                print("  Log found for this date. Mood: \(log.mood)")
+            }
+            
+            for habit in activeHabits {
+                if log?.habits[habit.name] == true {
+                    completedCount += 1
+                }
+            }
+            
+            let completionPercentage = (Double(completedCount) / Double(activeHabits.count)) * 100.0
+            print("  Calculation: \(completedCount) completed / \(activeHabits.count) active = \(completionPercentage)%")
+            graphData.append(DailyCompletionStat(date: currentDate, completionPercentage: completionPercentage))
+            
+        }
+        self.weeklyCompletionGraphData = graphData
+    }
 }
