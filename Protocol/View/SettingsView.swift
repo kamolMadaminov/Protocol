@@ -87,7 +87,7 @@ struct SettingsView: View {
                         }
                         
                         Section("About") {
-                            HStack { Text("App Version"); Spacer(); Text("1.1.1").foregroundColor(.gray) }
+                            HStack { Text("App Version"); Spacer(); Text("1.1.3").foregroundColor(.gray) }
                         }
                     }
                     .navigationTitle("Settings")
